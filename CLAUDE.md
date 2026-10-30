@@ -132,7 +132,7 @@ Cada carta em `window.VERSES`:
 
 ## Apps das lojas (`app/`)
 
-- Capacitor 8.6, appId `com.toquesagrado.app`, plugins `@capacitor-community/admob` e
+- Capacitor 8.6, appId `com.toquesagrado.app`, plugins `@capacitor-community/admob`, `@capacitor/share`, `@capacitor/filesystem` (compartilhar a imagem no app) e
   `@revenuecat/purchases-capacitor`, acessados em `loja.js` por `window.Capacitor.Plugins`.
 - `npm run sync` (dentro de `app/`) roda `ferramentas/copiar-web.sh`, que copia os arquivos de `web/` para
   `app/www/`, e depois `npx cap sync`. **Se criar um arquivo novo em `web/` que o app usa, inclua-o na lista do
@@ -147,8 +147,8 @@ Cada carta em `window.VERSES`:
 
 - Mantenha o estilo do código: JavaScript ES5 dentro de IIFE com `"use strict"`, `var`, nomes e comentários em
   português, sem dependências novas e sem etapa de build em `web/`.
-- Depois de mudar qualquer arquivo listado em `sw.js`, suba a versão de `CACHE` (ex.: `toque-sagrado-v30` para
-  `v31`), senão quem já instalou continua vendo a versão antiga.
+- Depois de mudar qualquer arquivo listado em `sw.js`, suba a versão de `CACHE` (ex.: `toque-sagrado-v31` para
+  `v32`), senão quem já instalou continua vendo a versão antiga.
 - Logo: é o desenho a lápis do Flavio (mão apontando um versículo num livro aberto) com moldura dourada,
   original em `web/logo-opcoes/logo-final-1024.png`. **Nunca redesenhe nem gere um logo novo**; quando
   precisar de outra versão, trate a imagem original dele (recorte, cor, contraste).

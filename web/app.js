@@ -343,6 +343,24 @@
     $("sobre").hidden = false;
   }
   function compartilhar() { $("formato").hidden = false; }
+  // No app das lojas o WebView do Android não tem navigator.share com arquivos:
+  // grava a imagem no cache do app e abre o compartilhamento do sistema pelos plugins do Capacitor.
+  function compartilharNativo(blob, formato, txt) {
+    var Cap = window.Capacitor, P = Cap && Cap.isNativePlatform && Cap.isNativePlatform() && Cap.Plugins;
+    if (!P || !P.Share || !P.Filesystem) return false;
+    var leitor = new FileReader();
+    leitor.onload = function () {
+      P.Filesystem.writeFile({ path: "versiculo-" + formato + ".jpg", data: String(leitor.result).split(",")[1], directory: "CACHE" })
+        .then(function (r) { return P.Share.share({ title: atual.ref, text: txt, files: [r.uri], dialogTitle: "Compartilhar versículo" }); })
+        .catch(function (err) {
+          // a pessoa fechar a lista de apps também cai aqui; só mostra a imagem se foi erro de verdade
+          if (!/cancel/i.test(String(err && (err.message || err)))) mostrarImagem(blob);
+        });
+    };
+    leitor.onerror = function () { mostrarImagem(blob); };
+    leitor.readAsDataURL(blob);
+    return true;
+  }
   function compartilharComo(formato) {
     $("formato").hidden = true;
     var txt = legenda(atual);
@@ -351,6 +369,7 @@
     copiarLegenda(txt).then(function (ok) { legendaCopiada = ok; });
     gerarImagem(formato).then(function (blob) {
       registrar(atual, "compartilhar");
+      if (compartilharNativo(blob, formato, txt)) return;
       var arquivo = new File([blob], "versiculo-" + formato + ".jpg", { type: "image/jpeg" });
       var pode = false;
       try { pode = !!(navigator.canShare && navigator.canShare({ files: [arquivo] })); } catch (e) { pode = false; }
