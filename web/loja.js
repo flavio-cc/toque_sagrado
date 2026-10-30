@@ -35,6 +35,8 @@
   var plataforma = nativo ? Cap.getPlatform() : "web";
   var AdMob = nativo && Cap.Plugins.AdMob;
   var Purchases = nativo && Cap.Plugins.Purchases;
+  // Sem chave do RevenueCat (APK de teste), as compras são simuladas como no navegador.
+  var simulada = !Purchases || !CONFIG.revenuecat[plataforma];
   var CHAVE = "toque-premium";
   var premium = false;
   try { premium = localStorage.getItem(CHAVE) === "1"; } catch (e) { /* sem armazenamento */ }
@@ -75,10 +77,9 @@
           .catch(function () {})
       );
     }
-    var chave = CONFIG.revenuecat[plataforma];
-    if (Purchases && chave) {
+    if (!simulada) {
       passos.push(
-        Purchases.configure({ apiKey: chave })
+        Purchases.configure({ apiKey: CONFIG.revenuecat[plataforma] })
           .then(function () { return Purchases.getCustomerInfo(); }).then(lerCliente)
           .then(function () { return Purchases.getOfferings(); })
           .then(function (o) {
@@ -131,19 +132,19 @@
 
   // ---------- compras ----------
   function produtos(tipo) {
-    if (!nativo) return SIMULADO[tipo];
+    if (simulada) return SIMULADO[tipo];
     return pacotes[tipo];
   }
   // Resolve true se a compra deu certo; false se a pessoa desistiu.
   function comprar(item) {
-    if (!nativo) {
+    if (simulada) {
       return new Promise(function (ok) {
-        var sim = window.confirm("Compra simulada (link de teste): " + item.titulo + " por " + item.preco + ". Confirmar?");
+        var sim = window.confirm("Compra simulada (versão de teste): " + item.titulo + " por " + item.preco + ". Confirmar?");
         if (sim && /^oferta/.test(item.id) === false) definirPremium(true);
         ok(sim);
       });
     }
-    if (!Purchases || !item.pacote) return Promise.resolve(false);
+    if (!item.pacote) return Promise.resolve(false);
     return Purchases.purchasePackage({ aPackage: item.pacote })
       .then(function (r) { lerCliente(r); return true; })
       .catch(function (e) {
@@ -153,7 +154,7 @@
       });
   }
   function restaurar() {
-    if (!nativo || !Purchases) return Promise.resolve(premium);
+    if (simulada) return Promise.resolve(premium);
     return Purchases.restorePurchases().then(function (r) { lerCliente(r); return premium; });
   }
   // gerenciar ou cancelar a assinatura fica na loja; o link abre a página certa de cada sistema
@@ -164,6 +165,7 @@
   window.LOJA = {
     nativo: nativo,
     plataforma: plataforma,
+    simulada: simulada,
     iniciar: iniciar,
     premium: function () { return premium; },
     aoMudar: function (f) { aoMudar.push(f); },
@@ -172,7 +174,7 @@
     comprar: comprar,
     restaurar: restaurar,
     linkAssinaturas: linkAssinaturas,
-    // só para o link de teste
-    simularPremium: function (sim) { if (!nativo) definirPremium(sim); }
+    // só para o link de teste e o APK de teste
+    simularPremium: function (sim) { if (simulada) definirPremium(sim); }
   };
 })();

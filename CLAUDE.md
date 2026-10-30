@@ -125,7 +125,8 @@ Cada carta em `window.VERSES`:
 - Arquivo único (tudo embutido, para mandar por link): `python3 web/ferramentas/montar-teste.py saida.html`.
   Os áudios ficam de fora e precisam estar em `audio/cartas/` ao lado do HTML.
 - Na Coleção, em modo navegador, há o botão "Recomeçar teste do zero" (dois toques) que apaga os dados locais.
-- No navegador o anúncio é simulado (5 segundos) e a compra usa `confirm()`.
+- No navegador o anúncio é simulado (5 segundos) e a compra usa `confirm()`. No app, enquanto não houver chave do
+  RevenueCat em `loja.js`, as compras também são simuladas (`LOJA.simulada`) e os anúncios são os de teste do Google.
 - Teste sempre em largura de celular (390 px) e confira acentos: a fonte Cormorant Garamond posiciona mal
   ê e á, por isso a interface usa EB Garamond.
 
@@ -146,8 +147,8 @@ Cada carta em `window.VERSES`:
 
 - Mantenha o estilo do código: JavaScript ES5 dentro de IIFE com `"use strict"`, `var`, nomes e comentários em
   português, sem dependências novas e sem etapa de build em `web/`.
-- Depois de mudar qualquer arquivo listado em `sw.js`, suba a versão de `CACHE` (ex.: `toque-sagrado-v29` para
-  `v30`), senão quem já instalou continua vendo a versão antiga.
+- Depois de mudar qualquer arquivo listado em `sw.js`, suba a versão de `CACHE` (ex.: `toque-sagrado-v30` para
+  `v31`), senão quem já instalou continua vendo a versão antiga.
 - Logo: é o desenho a lápis do Flavio (mão apontando um versículo num livro aberto) com moldura dourada,
   original em `web/logo-opcoes/logo-final-1024.png`. **Nunca redesenhe nem gere um logo novo**; quando
   precisar de outra versão, trate a imagem original dele (recorte, cor, contraste).

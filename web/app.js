@@ -527,8 +527,8 @@
     var o = $("ofertas"); o.innerHTML = "";
     window.LOJA.produtos("oferta").forEach(function (it) { o.appendChild(botaoProduto(it, "oferta")); });
     $("gerenciar").href = window.LOJA.linkAssinaturas();
-    $("gerenciar").hidden = !tem || !window.LOJA.nativo;
-    $("simular-sem-premium").hidden = !tem || window.LOJA.nativo;
+    $("gerenciar").hidden = !tem || window.LOJA.simulada;
+    $("simular-sem-premium").hidden = !tem || !window.LOJA.simulada;
     atualizarExtra();
   }
   function abrirPremium() {
@@ -553,7 +553,7 @@
     location.reload();
   }
   // no link de teste (navegador) o botão aparece sempre; no app das lojas, só no modo de teste
-  if (MODO_TESTE || !window.LOJA.nativo) {
+  if (MODO_TESTE || window.LOJA.simulada) {
     var br = $("btn-recomecar"), armado = null;
     br.hidden = false;
     br.onclick = function () {
