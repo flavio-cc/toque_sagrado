@@ -1,0 +1,8 @@
+{
+  "appId": "com.toquesagrado.app",
+  "appName": "Toque Sagrado",
+  "webDir": "www",
+  "backgroundColor": "#efe5cf",
+  "android": { "allowMixedContent": false },
+  "ios": { "contentInset": "never" }
+}

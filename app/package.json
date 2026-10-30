@@ -1,0 +1,20 @@
+{
+  "name": "toque-sagrado-app",
+  "version": "1.0.0",
+  "description": "Toque Sagrado para App Store e Google Play (Capacitor)",
+  "scripts": {
+    "web": "sh ferramentas/copiar-web.sh",
+    "sync": "sh ferramentas/copiar-web.sh && npx cap sync",
+    "android": "npx cap open android",
+    "ios": "npx cap open ios"
+  },
+  "dependencies": {
+    "@capacitor-community/admob": "^8.3.0",
+    "@capacitor/android": "^8.6.0",
+    "@capacitor/cli": "^8.6.0",
+    "@capacitor/core": "^8.6.0",
+    "@capacitor/ios": "^8.6.0",
+    "@revenuecat/purchases-capacitor": "^14.0.0"
+  },
+  "private": true
+}

@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="theme-color" content="#efe5cf">
+<title>Toque Sagrado</title>
+<meta name="apple-mobile-web-app-title" content="Toque Sagrado">
+<meta name="application-name" content="Toque Sagrado">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Cormorant+Garamond:ital,wght@0,500;1,500;1,600&family=EB+Garamond:ital,wght@0,500;0,600;0,700;1,500;1,600&family=Great+Vibes&family=Karla:wght@400;500;600;700&family=Montserrat:wght@500;600&family=Playfair+Display:ital,wght@0,500;1,500&display=swap">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<main id="app">
+  <header class="topo">
+    <div class="marca">
+      <img src="logo.webp" alt="" width="44" height="44">
+      <h1>Toque Sagrado</h1>
+    </div>
+    <p class="seq" title="Dias seguidos"><strong id="seq">0</strong><span id="seq-rotulo">dias seguidos</span></p>
+  </header>
+
+  <!-- Hoje: a carta já aparece aqui, pronta para raspar -->
+  <section id="tela-hoje" class="tela">
+    <div class="ola">
+      <span class="data" id="data"></span>
+      <h2 id="saudacao">Bom dia.</h2>
+    </div>
+
+    <div class="carta-papel" id="carta-papel">
+      <span class="fita" id="dica-carta">Carta do dia · grátis</span>
+      <div class="carta" id="carta">
+        <canvas id="cena" aria-hidden="true"></canvas>
+        <div class="selo" id="selo">Salmos</div>
+        <div class="sr" id="versiculo" aria-live="polite">
+          <p id="v-texto"></p>
+          <p id="v-ref"></p>
+        </div>
+        <canvas id="raspa" aria-label="Raspe para revelar o versículo"></canvas>
+        <button id="a-ouvir" class="ouvir"><svg viewBox="0 0 24 24"><path class="tocar" d="M3.5 9h3.8L12.5 4.8v14.4L7.3 15H3.5zM15.6 8.6a4.6 4.6 0 0 1 0 6.8l-1.3-1.3a2.8 2.8 0 0 0 0-4.2zM18.3 5.9a8.4 8.4 0 0 1 0 12.2L17 16.8a6.6 6.6 0 0 0 0-9.6z"/><g class="ondas"><rect x="5" y="9" width="2.6" height="6" rx="1.3"/><rect x="10.7" y="5" width="2.6" height="14" rx="1.3"/><rect x="16.4" y="8" width="2.6" height="8" rx="1.3"/></g></svg><span class="sr">Ouvir</span></button>
+      </div>
+    </div>
+
+    <p class="instr" id="instr" hidden></p>
+    <div id="acoes" class="acoes" hidden>
+      <button id="a-guardar"><svg viewBox="0 0 24 24"><path d="M6.5 3.5h11v17l-5.5-4-5.5 4z"/></svg><span>Guardar</span></button>
+      <button id="a-fav"><svg viewBox="0 0 24 24"><path d="M12 20s-7.5-4.6-7.5-10A4.2 4.2 0 0 1 12 7.3 4.2 4.2 0 0 1 19.5 10c0 5.4-7.5 10-7.5 10z"/></svg><span>Favoritar</span></button>
+      <button id="a-compartilhar"><svg viewBox="0 0 24 24"><path d="M12 3.5v11M8 7.5l4-4 4 4M5.5 12v7.5h13V12"/></svg><span>Compartilhar</span></button>
+      <button id="a-ler"><svg viewBox="0 0 24 24"><path d="M12 6.5C10 5 6.5 4.5 3 5v13.5c3.5-.5 7 0 9 1.5 2-1.5 5.5-2 9-1.5V5c-3.5-.5-7 0-9 1.5zM12 6.5V20"/></svg><span>Ler capítulo</span></button>
+    </div>
+
+    <div class="humor">
+      <span class="rotulo">Como está seu coração?</span>
+      <div id="humores" class="chips"></div>
+    </div>
+
+    <button id="btn-carta-extra" class="botao-extra">
+      <strong id="titulo-extra">Outra carta para você</strong>
+      <small id="sub-extra"></small>
+    </button>
+    <button id="link-premium" class="link" hidden>Cartas ilimitadas e sem anúncios com o Premium</button>
+  </section>
+
+  <!-- Coleção -->
+  <section id="tela-colecao" class="tela" hidden>
+    <div class="ola">
+      <span class="data">Minha coleção</span>
+      <h2 id="contador"></h2>
+    </div>
+    <div class="progresso"><i id="barra" style="width:0"></i></div>
+    <div id="lista" class="lista"></div>
+    <button id="btn-premium" class="botao-extra botao-premium"><strong>Premium e ofertas</strong><small>Cartas ilimitadas, sem anúncios, apoie o app</small></button>
+    <p class="credito">Texto bíblico: Bíblia Livre, licença CC BY 3.0 BR.</p>
+    <button id="btn-recomecar" class="link recomecar" hidden>Recomeçar teste do zero</button>
+  </section>
+</main>
+
+<nav class="abas" id="abas">
+  <button id="aba-hoje" class="on"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2.5M12 19v2.5M2.5 12H5M19 12h2.5M5.3 5.3l1.8 1.8M16.9 16.9l1.8 1.8M5.3 18.7l1.8-1.8M16.9 7.1l1.8-1.8"/></svg>Hoje</button>
+  <button id="aba-colecao"><svg viewBox="0 0 24 24"><rect x="4" y="6" width="11" height="15" rx="1.5"/><path d="M8 3h10.5A1.5 1.5 0 0 1 20 4.5V18"/></svg>Coleção</button>
+  <button id="aba-leitura"><svg viewBox="0 0 24 24"><path d="M12 6.5C10 5 6.5 4.5 3 5v13.5c3.5-.5 7 0 9 1.5 2-1.5 5.5-2 9-1.5V5c-3.5-.5-7 0-9 1.5zM12 6.5V20"/></svg>Leitura</button>
+</nav>
+
+<div id="leitor" class="leitor" hidden>
+  <div class="leitor-caixa" role="dialog" aria-modal="true" aria-labelledby="leitor-titulo">
+    <header class="leitor-topo">
+      <button id="leitor-ant" class="leitor-nav" aria-label="Capítulo anterior">‹</button>
+      <h2 id="leitor-titulo"></h2>
+      <button id="leitor-prox" class="leitor-nav" aria-label="Próximo capítulo">›</button>
+    </header>
+    <div id="leitor-texto" class="leitor-texto"></div>
+    <p class="credito">Texto bíblico: Bíblia Livre, licença CC BY 3.0 BR.</p>
+    <button id="leitor-fechar" class="link">Fechar</button>
+  </div>
+</div>
+<div id="premium" class="sobre" hidden>
+  <div class="sobre-caixa caixa-premium">
+    <p class="formato-titulo">Toque Sagrado Premium</p>
+    <ul class="beneficios">
+      <li>Cartas extras ilimitadas, todos os dias</li>
+      <li>Nenhum anúncio</li>
+      <li>Ajuda a manter o app no ar</li>
+    </ul>
+    <p class="premium-nota">A carta do dia, a narração, a coleção e o compartilhar continuam grátis para todos.</p>
+    <p id="premium-ativo" class="premium-ativo" hidden>Você é Premium. Obrigado!</p>
+    <div id="planos" class="planos"></div>
+    <p class="formato-titulo pequeno">Fazer uma oferta</p>
+    <p class="premium-nota">Contribuição voluntária, não libera nada: só ajuda o projeto.</p>
+    <div id="ofertas" class="ofertas"></div>
+    <p id="premium-aviso" class="premium-aviso" aria-live="polite"></p>
+    <p class="premium-nota">A assinatura renova sozinha até ser cancelada na loja, a qualquer momento.</p>
+    <div class="premium-links">
+      <button id="restaurar" class="link">Restaurar compras</button>
+      <a id="gerenciar" class="link" target="_blank" rel="noopener" hidden>Gerenciar assinatura</a>
+      <button id="simular-sem-premium" class="link" hidden>Teste: tirar o Premium</button>
+      <button id="fechar-premium" class="link">Fechar</button>
+    </div>
+  </div>
+</div>
+<div id="formato" class="sobre" hidden>
+  <div class="sobre-caixa formato">
+    <p class="formato-titulo">Compartilhar como</p>
+    <div class="formato-opcoes">
+      <button id="f-feed"><i class="f-feed"></i><strong>Feed</strong><small>Instagram, Facebook</small></button>
+      <button id="f-story"><i class="f-story"></i><strong>Story</strong><small>Stories, Status, Reels</small></button>
+    </div>
+    <p class="formato-nota">A legenda com o versículo vai junto e fica copiada.</p>
+    <button id="fechar-formato" class="link">Cancelar</button>
+  </div>
+</div>
+<div id="sobre" class="sobre" hidden>
+  <div class="sobre-caixa">
+    <img id="img-salmo" alt="Versículo para compartilhar">
+    <p>Segure a imagem para salvar ou compartilhar.</p>
+    <p id="legenda-copiada" hidden>A legenda com o versículo já está copiada: é só colar.</p>
+    <button id="fechar-sobre" class="link">Fechar</button>
+  </div>
+</div>
+<script src="verses.js"></script>
+<script src="cena.js"></script>
+<script src="loja.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

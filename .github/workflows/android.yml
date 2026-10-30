@@ -1,0 +1,38 @@
+# Gera o app Android (APK de teste) na nuvem a cada mudança em web/ ou app/.
+# O APK fica em Actions > (execução) > Artifacts, pronto para instalar no celular.
+name: Android
+
+on:
+  push:
+    branches: [main]
+    paths: ["web/**", "app/**", ".github/workflows/android.yml"]
+  workflow_dispatch:
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: gradle
+      - run: npm ci
+      - run: npm run sync -- android
+      - name: Montar APK
+        working-directory: app/android
+        run: ./gradlew assembleDebug --no-daemon
+      - uses: actions/upload-artifact@v4
+        with:
+          name: toque-sagrado-android-teste
+          path: app/android/app/build/outputs/apk/debug/*.apk
+          retention-days: 30
