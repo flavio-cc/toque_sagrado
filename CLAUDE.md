@@ -21,6 +21,7 @@ ouvir a narração, ler o capítulo inteiro e compartilhar a imagem nas redes.
 | --- | --- |
 | `web/` | O app inteiro: HTML, CSS e JavaScript puro, sem build, sem framework, sem npm |
 | `web/audio/cartas/<id>.mp3` | Narração de cada carta (331 arquivos, voz ElevenLabs) |
+| `web/fotos/NN.webp` | 41 imagens pintadas (IA, 1080x1920) usadas como fundo das cartas, 5 ou 6 por tema |
 | `web/dados/` | Base completa de Salmos e Provérbios em JSON e o LEIA-ME da fonte |
 | `web/ferramentas/` | Scripts Python: gerar a base, narrar, montar o arquivo único de teste |
 | `web/logo-opcoes/` | Originais do logo (desenho a lápis do Flavio) e versões tratadas |
@@ -34,11 +35,11 @@ ouvir a narração, ler o capítulo inteiro e compartilhar a imagem nas redes.
 | `index.html` | Telas e folhas (sheets). Ordem dos scripts importa: `verses.js`, `cena.js`, `loja.js`, `app.js` (o `biblia.js` é carregado sob demanda pelo leitor) |
 | `style.css` | Visual "papel e lápis": fundo de papel, dourado, fonte EB Garamond na interface |
 | `app.js` | Toda a lógica: estado, escolha do versículo, raspagem, botões, coleção, leitor, compartilhar, limites diários, Premium |
-| `cena.js` | Desenha a imagem de cada carta em canvas (cenas procedurais) e gera a imagem de compartilhar. Expõe `window.CENA` |
+| `cena.js` | Desenha a imagem de cada carta (foto do tema + texto; cenas procedurais em canvas só se a foto falhar) e gera a imagem de compartilhar. Expõe `window.CENA` |
 | `verses.js` | **Gerado.** `window.VERSES` (331 cartas), `window.POP` (popularidade), `window.TEMAS`, `window.HUMORES` |
 | `biblia.js` | **Gerado.** `window.BIBLIA`: Salmos e Provérbios completos, para o leitor de capítulo |
 | `loja.js` | Anúncio premiado (AdMob) e compras (RevenueCat) via Capacitor; no navegador tudo é simulado. Expõe `window.LOJA` |
-| `sw.js` | Service worker com cache offline. **Suba a versão de `CACHE` a cada mudança** em arquivos da lista |
+| `sw.js` | Service worker com cache offline. **Suba a versão de `CACHE` a cada mudança** em arquivos da lista. As fotos entram no cache conforme aparecem |
 | `manifest.json`, `icon*`, `apple-touch-icon.png` | PWA e ícones |
 | `logo.webp` | Logo mostrado no app |
 | `marca.webp` | Marca d'água da imagem compartilhada (só os traços do lápis do logo) |
@@ -76,7 +77,12 @@ Cada carta em `window.VERSES`:
 
 - Cada carta aberta recebe `v.semente` (`novaSemente()` em `app.js`: número aleatório de 32 bits).
   A carta do dia guarda a semente em `estado.dia.semente`; a coleção guarda a semente de cada item.
-- `variacao(semente)` sorteia com PRNG determinístico: cena (70% das do tema, 30% de `CENAS_EXTRAS`),
+- Fundo: `FOTOS` em `cena.js` liga cada tema às suas fotos de `web/fotos/`. `fotoDoVerso(v)` usa a semente:
+  80% uma foto do tema, 20% qualquer uma das 41 (sem semente, escolhe pelo id). Na foto entram só espelho e zoom;
+  o véu escuro se ajusta à claridade da foto. Só as 4 últimas fotos ficam na memória (iPhone).
+  As fotos foram geradas pelo Flavio no site da ElevenLabs com os prompts de `imagens-ia/prompts.json` (arquivos do projeto).
+  Para trocar ou somar fotos: WebP 1080x1920, número novo em `FOTOS`, e suba a versão do `sw.js`.
+- Se a foto não carregar, cai na cena procedural: `variacao(semente)` sorteia com PRNG determinístico: cena (70% das do tema, 30% de `CENAS_EXTRAS`),
   espelho, zoom e recorte, posição do sol ou lua, tinta, neblina, raios, luzes, pássaros, brilhos, grão, vinheta
   e estilo do texto. Mesma semente = mesma imagem. Cartas antigas sem semente usam `NEUTRO` e saem como antes.
 - Estilos de texto em uso: `elegante`, `script`, `impacto`. O estilo "vidro" (caixa em volta do texto) foi
@@ -124,7 +130,7 @@ Cada carta em `window.VERSES`:
 
 - Navegador: `cd web && python3 -m http.server 8000` e abra http://localhost:8000.
 - Arquivo único (tudo embutido, para mandar por link): `python3 web/ferramentas/montar-teste.py saida.html`.
-  Os áudios ficam de fora e precisam estar em `audio/cartas/` ao lado do HTML.
+  Os áudios ficam de fora e precisam estar em `audio/cartas/` ao lado do HTML; as fotos entram embutidas em 720x1280 (precisa do Pillow).
 - Na Coleção, em modo navegador, há o botão "Recomeçar teste do zero" (dois toques) que apaga os dados locais.
 - No navegador o anúncio é simulado (5 segundos) e a compra usa `confirm()`. No app, enquanto não houver chave do
   RevenueCat em `loja.js`, as compras também são simuladas (`LOJA.simulada`) e os anúncios são os de teste do Google.
@@ -148,8 +154,8 @@ Cada carta em `window.VERSES`:
 
 - Mantenha o estilo do código: JavaScript ES5 dentro de IIFE com `"use strict"`, `var`, nomes e comentários em
   português, sem dependências novas e sem etapa de build em `web/`.
-- Depois de mudar qualquer arquivo listado em `sw.js`, suba a versão de `CACHE` (ex.: `toque-sagrado-v33` para
-  `v34`), senão quem já instalou continua vendo a versão antiga.
+- Depois de mudar qualquer arquivo listado em `sw.js`, suba a versão de `CACHE` (ex.: `toque-sagrado-v34` para
+  `v35`), senão quem já instalou continua vendo a versão antiga.
 - Logo: é o desenho a lápis do Flavio (mão apontando um versículo num livro aberto) com moldura dourada,
   original em `web/logo-opcoes/logo-final-1024.png`. **Nunca redesenhe nem gere um logo novo**; quando
   precisar de outra versão, trate a imagem original dele (recorte, cor, contraste).

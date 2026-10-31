@@ -9,4 +9,5 @@ for f in index.html style.css app.js verses.js biblia.js cena.js loja.js manifes
   cp "$WEB/$f" www/
 done
 cp -r "$WEB/audio/cartas" www/audio/
+cp -r "$WEB/fotos" www/
 echo "www pronto: $(du -sh www | cut -f1)"

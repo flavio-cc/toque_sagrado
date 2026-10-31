@@ -1,5 +1,5 @@
-// Desenha a carta de cada versículo: um cenário pintado em canvas + texto em um de 4 estilos.
-// O mesmo código gera a carta na tela e a imagem de compartilhar.
+// Desenha a carta de cada versículo: uma foto pintada do tema (fotos/NN.webp) + texto em um dos estilos.
+// Se a foto não carregar, usa o cenário pintado em canvas. O mesmo código gera a carta na tela e a imagem de compartilhar.
 (function () {
   "use strict";
 
@@ -292,6 +292,65 @@
     return e;
   }
 
+  // ---------- fotos pintadas (geradas por IA a partir dos prompts do Flavio, 5 ou 6 por tema) ----------
+  var FOTOS = {
+    paz: ["01", "07", "07b", "16", "25", "33"], esperanca: ["02", "17", "23", "32", "38"],
+    forca: ["03", "18", "20", "27", "34"], protecao: ["04", "06", "14", "24", "37"],
+    consolo: ["05", "09", "28", "31", "35"], sabedoria: ["08", "13", "19", "30", "36"],
+    gratidao: ["10", "12", "22", "29", "39"], louvor: ["11", "15", "21", "26", "40"]
+  };
+  var TODAS_FOTOS = [];
+  Object.keys(FOTOS).forEach(function (t) { TODAS_FOTOS = TODAS_FOTOS.concat(FOTOS[t]); });
+  function fotoDoVerso(v) {
+    var lista = FOTOS[v.temas[0]] || TODAS_FOTOS;
+    if (!temSemente(v)) return lista[semente("f" + v.id) % lista.length];
+    var r = aleatorio(v.semente ^ 0x2F0705)();
+    // 80% das vezes uma foto do tema; nas outras, qualquer uma das 41
+    return r < 0.8 ? lista[Math.floor(r / 0.8 * lista.length)] : TODAS_FOTOS[Math.floor((r - 0.8) / 0.2 * TODAS_FOTOS.length)];
+  }
+  function srcDaFoto(n) { return (window.FOTOS_SRC && window.FOTOS_SRC[n]) || "fotos/" + n + ".webp"; }
+  // guarda só as últimas fotos decodificadas: cada uma ocupa uns 8 MB de memória no iPhone
+  var fotos = {}, ordemFotos = [];
+  function carregarFoto(n) {
+    if (fotos[n]) { ordemFotos.splice(ordemFotos.indexOf(n), 1); ordemFotos.push(n); return fotos[n]; }
+    fotos[n] = new Promise(function (ok) {
+      var img = new Image(), feito = false;
+      function fim(boa) {
+        if (feito) return; feito = true;
+        if (!boa) { delete fotos[n]; ordemFotos.splice(ordemFotos.indexOf(n), 1); return ok(null); }
+        img.claridade = claridade(img);
+        ok(img);
+      }
+      img.onload = function () { fim(img.naturalWidth > 0); };
+      img.onerror = function () { fim(false); };
+      img.src = srcDaFoto(n);
+      setTimeout(function () { fim(img.complete && img.naturalWidth > 0); }, 8000);
+    });
+    ordemFotos.push(n);
+    while (ordemFotos.length > 4) delete fotos[ordemFotos.shift()];
+    return fotos[n];
+  }
+  // claridade média da faixa do meio (0 a 1), para escurecer mais as fotos claras e o texto branco aparecer
+  function claridade(img) {
+    try {
+      var t = rascunho("medir", 12, 12), c = t.getContext("2d");
+      c.drawImage(img, 0, img.naturalHeight * 0.25, img.naturalWidth, img.naturalHeight * 0.5, 0, 0, 12, 12);
+      var d = c.getImageData(0, 0, 12, 12).data, soma = 0;
+      for (var i = 0; i < d.length; i += 4) soma += 0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2];
+      return soma / (d.length / 4) / 255;
+    } catch (e) { return 0.6; }
+  }
+  // desenha a foto cobrindo a carta (corta as sobras), com espelho e zoom da semente
+  function pintarFoto(b, img, w, h, p) {
+    var iw = img.naturalWidth, ih = img.naturalHeight, esc = Math.max(w / iw, h / ih) * p.zoom;
+    var dw = iw * esc, dh = ih * esc;
+    var x = (w - dw) * (p.zoom === 1 ? 0.5 : p.ox / (p.zoom - 1 || 1)), y = (h - dh) * (p.zoom === 1 ? 0.5 : p.oy / (p.zoom - 1 || 1));
+    b.save();
+    if (p.espelho) { b.translate(w, 0); b.scale(-1, 1); }
+    b.drawImage(img, x, y, dw, dh);
+    b.restore();
+  }
+
   // ---------- variações da raspada ----------
   // Tudo sai da semente: a mesma semente redesenha sempre a mesma imagem (coleção, compartilhar).
   var TINTAS = ["255,170,90", "255,120,150", "120,200,255", "170,120,255", "90,220,180", "255,215,120", "255,140,90", "140,170,255"];
@@ -517,17 +576,25 @@
   }
 
   // ---------- desenho completo ----------
-  function desenharSync(canvas, v, w, h, marca) {
+  function desenharSync(canvas, v, w, h, marca, foto) {
     canvas.width = w; canvas.height = h;
     var c = canvas.getContext("2d"), s = w / 1080;
-    var cena = CENAS[cenaDoVerso(v)], estilo = estiloDoVerso(v);
+    var estilo = estiloDoVerso(v), escuro;
     var base = rascunho("base", w, h);
     var b = base.getContext("2d");
     var seed = temSemente(v) ? v.semente >>> 0 : semente(v.id), p = temSemente(v) ? variacao(seed) : NEUTRO;
-    pintarCena(b, cena, w, h, s, seed, p);
-    if (p.tinta) { tingir(b, w, h, p.tinta); enfeitar(b, w, h, s, p); }
+    if (foto) {
+      // na foto fica só o espelho e o zoom da semente: tinta, grão e enfeites estragavam a pintura
+      pintarFoto(b, foto, w, h, p);
+      escuro = 0.08 + foto.claridade * 0.32;
+    } else {
+      var cena = CENAS[cenaDoVerso(v)];
+      pintarCena(b, cena, w, h, s, seed, p);
+      if (p.tinta) { tingir(b, w, h, p.tinta); enfeitar(b, w, h, s, p); }
+      escuro = cena.escuro;
+    }
     // véu para dar leitura ao texto
-    b.fillStyle = grad(b, 0, 0, 0, h, [[0, "rgba(0,0,0," + (cena.escuro * 0.5) + ")"], [0.5, "rgba(0,0,0," + (cena.escuro + 0.06) + ")"], [1, "rgba(0,0,0," + (cena.escuro + 0.2) + ")"]]);
+    b.fillStyle = grad(b, 0, 0, 0, h, [[0, "rgba(0,0,0," + (escuro * 0.5) + ")"], [0.5, "rgba(0,0,0," + (escuro + 0.06) + ")"], [1, "rgba(0,0,0," + (escuro + 0.2) + ")"]]);
     b.fillRect(0, 0, w, h);
     c.drawImage(base, 0, 0);
     if (marca && imagemMarca && imagemMarca.complete && imagemMarca.naturalWidth) {
@@ -555,13 +622,13 @@
   // desenha no canvas na tela (mede o elemento) ou em tamanho dado
   function desenhar(canvas, v, opcoes) {
     opcoes = opcoes || {};
-    return carregarFontes().then(function () {
+    return Promise.all([carregarFontes(), carregarFoto(fotoDoVerso(v))]).then(function (prontos) {
       var w = opcoes.largura, h = opcoes.altura;
       if (!w) {
         var r = canvas.getBoundingClientRect(), dpr = Math.min(window.devicePixelRatio || 1, 2);
         w = Math.max(2, Math.round(r.width * dpr)); h = Math.max(2, Math.round(r.height * dpr));
       }
-      desenharSync(canvas, v, w, h, opcoes.marca);
+      desenharSync(canvas, v, w, h, opcoes.marca, prontos[1]);
     });
   }
   // desenho do logo usado como marca d'água na imagem de compartilhar
@@ -588,5 +655,5 @@
     });
   }
 
-  window.CENA = { desenhar: desenhar, blob: blob, cenas: Object.keys(CENAS), estilos: ESTILOS, variacao: variacao, cenaDoVerso: cenaDoVerso, estiloDoVerso: estiloDoVerso, desenharSync: desenharSync, carregarFontes: carregarFontes, CENAS: CENAS };
+  window.CENA = { desenhar: desenhar, blob: blob, cenas: Object.keys(CENAS), estilos: ESTILOS, variacao: variacao, cenaDoVerso: cenaDoVerso, fotoDoVerso: fotoDoVerso, fotos: FOTOS, estiloDoVerso: estiloDoVerso, desenharSync: desenharSync, carregarFontes: carregarFontes, CENAS: CENAS };
 })();

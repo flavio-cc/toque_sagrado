@@ -11,7 +11,15 @@ corpo = html.split("<body>", 1)[1].split("</body>", 1)[0]
 logo = "data:image/webp;base64," + base64.b64encode((raiz / "logo.webp").read_bytes()).decode()
 corpo = corpo.replace('src="logo.webp"', 'src="' + logo + '"')
 marca = "data:image/webp;base64," + base64.b64encode((raiz / "marca.webp").read_bytes()).decode()
-corpo = corpo.replace('<script src="cena.js"></script>', '<script>window.MARCA_SRC = "' + marca + '";</script>\n<script src="cena.js"></script>')
+# fotos das cartas em versão menor (720x1280) para o arquivo único não passar de uns 10 MB
+import io, json
+from PIL import Image
+fotos = {}
+for f in sorted((raiz / "fotos").glob("*.webp")):
+    b = io.BytesIO()
+    Image.open(f).convert("RGB").resize((720, 1280), Image.LANCZOS).save(b, "WEBP", quality=70)
+    fotos[f.stem] = "data:image/webp;base64," + base64.b64encode(b.getvalue()).decode()
+corpo = corpo.replace('<script src="cena.js"></script>', '<script>window.MARCA_SRC = "' + marca + '";\nwindow.FOTOS_SRC = ' + json.dumps(fotos) + ';</script>\n<script src="cena.js"></script>')
 
 def script(nome):
     return "<script>\n" + ler(nome).replace("</script", "<\\/script") + "\n</script>"
