@@ -104,7 +104,7 @@ h1 { margin: 0; font: 700 20px var(--display); font-variant: small-caps; letter-
 
 /* coleção */
 .lista { display: flex; flex-direction: column; gap: 12px; }
-.item { display: flex; gap: 14px; align-items: center; padding: 10px 14px 10px 10px; border-radius: 6px; background: var(--papel-claro);
+.item { cursor: pointer; display: flex; gap: 14px; align-items: center; padding: 10px 14px 10px 10px; border-radius: 6px; background: var(--papel-claro);
   box-shadow: 0 1px 0 rgba(0, 0, 0, .04), 0 6px 14px -8px rgba(70, 50, 20, .45); }
 .item .mini { width: 68px; height: 90px; border-radius: 3px; flex: none; background: #2a2433; }
 .item .txt { min-width: 0; }

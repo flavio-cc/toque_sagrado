@@ -170,7 +170,8 @@
   }
   function abrirCarta(v, dica, diaria, jaAberta) {
     pararAudio(); $("a-ouvir").style.opacity = "";
-    var sem = diaria ? (estado.dia.semente = estado.dia.semente || novaSemente()) : novaSemente();
+    // carta da coleção já vem com a semente guardada, para abrir com a mesma imagem
+    var sem = v.semente != null ? v.semente : diaria ? (estado.dia.semente = estado.dia.semente || novaSemente()) : novaSemente();
     v = Object.assign({}, v, { semente: sem });
     atual = v; ehDiaria = !!diaria; revelado = false; abertoEm = Date.now();
     estado.vistos[v.id] = true; salvar();
@@ -445,6 +446,8 @@
       if (estado.colecao[id].semente != null) v = Object.assign({}, v, { semente: estado.colecao[id].semente });
       var d = document.createElement("div");
       d.className = "item";
+      d.setAttribute("role", "button"); d.tabIndex = 0;
+      d.onclick = function () { abrirCarta(v, "Da sua coleção", false, true); };
       var t = document.createElement("p"); t.className = "t"; t.textContent = v.texto;
       var r = document.createElement("p"); r.className = "r";
       r.textContent = v.ref + (estado.colecao[id].fav ? "  ♥" : "");
