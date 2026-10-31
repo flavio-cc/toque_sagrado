@@ -220,3 +220,14 @@ h1 { margin: 0; font: 700 20px var(--display); font-variant: small-caps; letter-
   border: 3px solid rgba(227, 195, 121, .35); border-top-color: var(--ouro-claro); animation: girar .8s linear infinite; }
 @keyframes girar { to { transform: rotate(360deg); } }
 @media (prefers-reduced-motion: reduce) { .girando { animation-duration: 2.4s; } }
+/* círculo de carregando dentro da carta (fica atrás da camada de raspar) e nos outros lugares */
+.carta.carregando::after { content: ""; position: absolute; left: 50%; top: 50%; z-index: 1; width: 42px; height: 42px; margin: -21px 0 0 -21px;
+  border-radius: 50%; border: 3px solid rgba(227, 195, 121, .3); border-top-color: var(--ouro-claro); animation: girar .8s linear infinite; }
+.carregando-centro { display: flex; justify-content: center; padding: 40px 0; }
+canvas.mini.carregando { background: linear-gradient(100deg, #e6dcc6 30%, #f3ecdc 50%, #e6dcc6 70%) 0 0 / 300% 100%; animation: brilhar 1.2s linear infinite; }
+@keyframes brilhar { from { background-position: 100% 0; } to { background-position: 0 0; } }
+.ouvir.carregando::after { content: ""; position: absolute; inset: 0; border-radius: 50%; border: 2px solid transparent;
+  border-top-color: #fff3cc; animation: girar .8s linear infinite; }
+@media (prefers-reduced-motion: reduce) { .carta.carregando::after, .ouvir.carregando::after { animation-duration: 2.4s; } }
+.ouvir.carregando .ondas { display: none; }
+.ouvir.carregando .tocar { display: inline; opacity: .6; }

@@ -154,8 +154,12 @@ Cada carta em `window.VERSES`:
 
 - Mantenha o estilo do código: JavaScript ES5 dentro de IIFE com `"use strict"`, `var`, nomes e comentários em
   português, sem dependências novas e sem etapa de build em `web/`.
-- Depois de mudar qualquer arquivo listado em `sw.js`, suba a versão de `CACHE` (ex.: `toque-sagrado-v35` para
-  `v36`), senão quem já instalou continua vendo a versão antiga.
+- Depois de mudar qualquer arquivo listado em `sw.js`, suba a versão de `CACHE` (ex.: `toque-sagrado-v36` para
+  `v37`), senão quem já instalou continua vendo a versão antiga.
+- **Toda interação que pode demorar mostra carregando** (pedido do Flavio): `carregando(sim, limite)` em `app.js`
+  (círculo dourado em tela cheia, sem texto) para compartilhar, anúncio no app, compra e restaurar; a carta e as
+  miniaturas da Coleção mostram o círculo ou brilho até a foto chegar; o botão Ouvir gira o anel até o áudio tocar;
+  leitor e planos do Premium mostram o círculo enquanto carregam. Ao criar uma ação nova que espera algo, faça igual.
 - Logo: é o desenho a lápis do Flavio (mão apontando um versículo num livro aberto) com moldura dourada,
   original em `web/logo-opcoes/logo-final-1024.png`. **Nunca redesenhe nem gere um logo novo**; quando
   precisar de outra versão, trate a imagem original dele (recorte, cor, contraste).

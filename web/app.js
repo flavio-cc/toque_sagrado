@@ -189,11 +189,16 @@
     atualizarBotoes();
     mostrar("hoje");
     desenharCamada();
-    window.CENA.desenhar($("cena"), v);
+    // a foto pode demorar a chegar: o círculo aparece na carta até a imagem ficar pronta
+    var vez = ++vezDaCarta;
+    $("carta").classList.add("carregando");
+    function pronta() { if (vez === vezDaCarta) $("carta").classList.remove("carregando"); }
+    window.CENA.desenhar($("cena"), v).then(pronta, pronta);
     if (jaAberta) revelar();
     setTimeout(function () { document.body.classList.remove("sem-anim"); }, 50);
   }
 
+  var vezDaCarta = 0;
   // Camada de raspar: folha de ouro com hachura de lápis, como o desenho do logo.
   function desenharCamada() {
     canvas = $("raspa");
@@ -309,6 +314,7 @@
     $("a-ouvir").querySelector("span").textContent = tocando ? "Pausar" : "Ouvir";
   }
   function pararAudio() {
+    $("a-ouvir").classList.remove("carregando");
     if (audio) { audio.pause(); audio = null; }
     rotuloOuvir(false);
   }
@@ -316,10 +322,24 @@
     if (audio) return pararAudio();
     audio = new Audio("audio/cartas/" + atual.id + ".mp3");
     audio.onended = pararAudio;
+    // enquanto o áudio carrega, o anel do botão gira
+    $("a-ouvir").classList.add("carregando");
+    audio.onplaying = function () { $("a-ouvir").classList.remove("carregando"); };
     audio.onerror = function () { pararAudio(); $("a-ouvir").querySelector("span").textContent = "Áudio indisponível"; $("a-ouvir").style.opacity = ".5"; };
     audio.play().then(function () { registrar(atual, "ouvir"); }, function () { pararAudio(); });
     rotuloOuvir(true);
   }
+
+  // ---------- carregando ----------
+  // Animação (círculo dourado, sem texto) em tudo que pode demorar: compartilhar, anúncio, compras.
+  var esperaCarregando = null;
+  function carregando(sim, limite) {
+    clearTimeout(esperaCarregando);
+    $("preparando").hidden = !sim;
+    // garantia: se o sistema não responder, a animação não fica presa na tela
+    if (sim) esperaCarregando = setTimeout(function () { $("preparando").hidden = true; }, limite || 20000);
+  }
+  var girando = '<span class="girando" aria-label="Carregando"></span>';
 
   // ---------- compartilhar como imagem ----------
   // Feed: 4:5, o maior espaço no feed do Instagram e do Facebook. Story: 9:16, para Stories, Status do WhatsApp e Reels.
@@ -328,16 +348,8 @@
     var t = FORMATOS[formato] || FORMATOS.feed;
     return window.CENA.blob(atual, t[0], t[1]);
   }
-  // animação de carregando enquanto a imagem é desenhada e o compartilhamento abre
-  var esperaPreparo = null;
-  function preparando(sim) {
-    clearTimeout(esperaPreparo);
-    $("preparando").hidden = !sim;
-    // garantia: se o compartilhamento do sistema não responder, o aviso não fica preso na tela
-    if (sim) esperaPreparo = setTimeout(function () { $("preparando").hidden = true; }, 20000);
-  }
   function mostrarImagem(blob) {
-    preparando(false);
+    carregando(false);
     var url = URL.createObjectURL(blob);
     $("img-salmo").src = url;
     $("sobre").hidden = false;
@@ -351,7 +363,7 @@
     var leitor = new FileReader();
     leitor.onload = function () {
       P.Filesystem.writeFile({ path: "versiculo-" + formato + ".jpg", data: String(leitor.result).split(",")[1], directory: "CACHE" })
-        .then(function (r) { preparando(false); return P.Share.share({ files: [r.uri], dialogTitle: "Compartilhar versículo" }); })
+        .then(function (r) { carregando(false); return P.Share.share({ files: [r.uri], dialogTitle: "Compartilhar versículo" }); })
         .catch(function (err) {
           // a pessoa fechar a lista de apps também cai aqui; só mostra a imagem se foi erro de verdade
           if (!/cancel/i.test(String(err && (err.message || err)))) mostrarImagem(blob);
@@ -363,7 +375,7 @@
   }
   function compartilharComo(formato) {
     $("formato").hidden = true;
-    preparando(true);
+    carregando(true);
     // só a imagem, sem texto: o Story do Instagram recusa imagem com texto junto (pedido do Flavio)
     gerarImagem(formato).then(function (blob) {
       registrar(atual, "compartilhar");
@@ -372,12 +384,12 @@
       var pode = false;
       try { pode = !!(navigator.canShare && navigator.canShare({ files: [arquivo] })); } catch (e) { pode = false; }
       if (!pode) return mostrarImagem(blob);
-      preparando(false);
+      carregando(false);
       // se o compartilhamento do sistema falhar, mostra a imagem para salvar
       navigator.share({ files: [arquivo] }).catch(function (err) {
         if (!err || err.name !== "AbortError") mostrarImagem(blob);
       });
-    }, function () { preparando(false); });
+    }, function () { carregando(false); });
   }
   $("f-feed").onclick = function () { compartilharComo("feed"); };
   $("f-story").onclick = function () { compartilharComo("story"); };
@@ -406,7 +418,7 @@
     leitura = { livro: v.livro || "sl", cap: v.cap || v.salmo, ini: marca.ini, fim: marca.fim };
     $("leitor").hidden = false;
     $("leitor-titulo").textContent = nomeLivro(v) + " " + leitura.cap;
-    $("leitor-texto").textContent = "Carregando…";
+    $("leitor-texto").innerHTML = '<div class="carregando-centro">' + girando + "</div>";
     carregarBiblia().then(mostrarCapitulo, function () {
       $("leitor-texto").textContent = "Não foi possível abrir o texto agora.";
     });
@@ -466,7 +478,9 @@
       var txt = document.createElement("div"); txt.className = "txt";
       txt.appendChild(t); txt.appendChild(r);
       d.appendChild(th); d.appendChild(txt); l.appendChild(d);
-      window.CENA.desenhar(th, v, { largura: 216, altura: 288 });
+      th.classList.add("carregando");
+      function pronta() { th.classList.remove("carregando"); }
+      window.CENA.desenhar(th, v, { largura: 216, altura: 288 }).then(pronta, pronta);
     });
   }
 
@@ -484,10 +498,13 @@
     if (anunciosRestantes() <= 0) return atualizarExtra();
     // o anúncio só passa quando a pessoa escolhe, e a carta só vem se ela assistir até o fim
     $("btn-carta-extra").disabled = true;
+    // no app o anúncio leva uns segundos para carregar; no navegador a simulação já tem a própria tela
+    if (window.LOJA.nativo) carregando(true, 60000);
     window.LOJA.assistirAnuncio().then(function (ganhou) {
+      carregando(false);
       if (ganhou) { estado.dia.anuncios = (estado.dia.anuncios || 0) + 1; salvar(); abrirExtra(); }
       atualizarExtra();
-    }, atualizarExtra);
+    }, function () { carregando(false); atualizarExtra(); });
   };
   $("link-premium").onclick = abrirPremium;
   $("btn-premium").onclick = abrirPremium;
@@ -504,7 +521,7 @@
     if (revelado) return abrirLeitor(atual);
     if (!leitura) leitura = { livro: "sl", cap: 1, ini: 0, fim: 0 };
     $("leitor").hidden = false;
-    $("leitor-texto").textContent = "Carregando…";
+    $("leitor-texto").innerHTML = '<div class="carregando-centro">' + girando + "</div>";
     carregarBiblia().then(mostrarCapitulo, function () {
       $("leitor-texto").textContent = "Não foi possível abrir o texto agora.";
     });
@@ -526,11 +543,13 @@
     b.querySelector("span").textContent = item.preco;
     b.querySelector("small").textContent = item.detalhe || "";
     b.onclick = function () {
+      carregando(true, 120000);
       window.LOJA.comprar(item).then(function (ok) {
+        carregando(false);
         if (!ok) return;
         if (/^oferta/.test(item.id)) $("premium-aviso").textContent = "Obrigado pela sua oferta. Que Deus abençoe você.";
         montarPremium();
-      }, function () { $("premium-aviso").textContent = "Não foi possível concluir a compra agora."; });
+      }, function () { carregando(false); $("premium-aviso").textContent = "Não foi possível concluir a compra agora."; });
     };
     return b;
   }
@@ -540,7 +559,9 @@
     $("planos").hidden = tem;
     var p = $("planos"); p.innerHTML = "";
     var lista = window.LOJA.produtos("premium");
-    if (!lista.length) p.innerHTML = '<p class="premium-nota">Os planos não carregaram. Confira a internet e tente de novo.</p>';
+    // enquanto a loja ainda está buscando os planos, mostra o círculo no lugar do aviso de erro
+    if (!lista.length) p.innerHTML = lojaPronta ? '<p class="premium-nota">Os planos não carregaram. Confira a internet e tente de novo.</p>'
+      : '<div class="carregando-centro">' + girando + "</div>";
     lista.forEach(function (it) { p.appendChild(botaoProduto(it, "plano")); });
     var o = $("ofertas"); o.innerHTML = "";
     window.LOJA.produtos("oferta").forEach(function (it) { o.appendChild(botaoProduto(it, "oferta")); });
@@ -556,10 +577,12 @@
   }
   $("fechar-premium").onclick = function () { $("premium").hidden = true; };
   $("restaurar").onclick = function () {
+    carregando(true, 60000);
     window.LOJA.restaurar().then(function (tem) {
+      carregando(false);
       $("premium-aviso").textContent = tem ? "Premium restaurado." : "Nenhuma compra encontrada nesta conta.";
       montarPremium();
-    });
+    }, function () { carregando(false); $("premium-aviso").textContent = "Não foi possível restaurar agora."; });
   };
   $("simular-sem-premium").onclick = function () { window.LOJA.simularPremium(false); montarPremium(); };
   window.LOJA.aoMudar(function () { atualizarExtra(); if (!$("premium").hidden) montarPremium(); });
@@ -582,7 +605,12 @@
   }
 
   // ---------- início ----------
-  window.LOJA.iniciar().then(atualizarExtra);
+  var lojaPronta = false;
+  window.LOJA.iniciar().then(function () {
+    lojaPronta = true;
+    atualizarExtra();
+    if (!$("premium").hidden) montarPremium();
+  });
   virarDia();
   saudar();
   montarHumores();
