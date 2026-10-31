@@ -87,8 +87,9 @@ Cada carta em `window.VERSES`:
 
 - O botão abre a folha `#formato`: Feed 1080x1350 ou Story 1080x1920 (`FORMATOS` em `app.js`).
 - `CENA.blob()` gera JPEG qualidade 0.92 (uns 150 KB).
-- A legenda (`legenda(v)`) é "texto" + referência (Bíblia Livre) + toquesagrado.com. Ela vai como texto do
-  compartilhamento e é copiada para a área de transferência no toque, porque o Instagram ignora o texto.
+- Compartilha **só a imagem**, sem texto nem link junto (o Story do Instagram falhava com texto; pedido do Flavio).
+  No app usa os plugins Share e Filesystem do Capacitor (o WebView do Android não tem `navigator.share` com
+  arquivos); no navegador usa `navigator.share` e, sem ele, mostra a imagem para salvar.
 - Regras do Flavio para a imagem compartilhada:
   - **não mostrar o nome do app nem um selo do logo**;
   - a marca d'água são só os traços do logo, brancos e translúcidos (alfa 0.3; escuros com alfa 0.22 em fundo
@@ -147,8 +148,8 @@ Cada carta em `window.VERSES`:
 
 - Mantenha o estilo do código: JavaScript ES5 dentro de IIFE com `"use strict"`, `var`, nomes e comentários em
   português, sem dependências novas e sem etapa de build em `web/`.
-- Depois de mudar qualquer arquivo listado em `sw.js`, suba a versão de `CACHE` (ex.: `toque-sagrado-v31` para
-  `v32`), senão quem já instalou continua vendo a versão antiga.
+- Depois de mudar qualquer arquivo listado em `sw.js`, suba a versão de `CACHE` (ex.: `toque-sagrado-v32` para
+  `v33`), senão quem já instalou continua vendo a versão antiga.
 - Logo: é o desenho a lápis do Flavio (mão apontando um versículo num livro aberto) com moldura dourada,
   original em `web/logo-opcoes/logo-final-1024.png`. **Nunca redesenhe nem gere um logo novo**; quando
   precisar de outra versão, trate a imagem original dele (recorte, cor, contraste).

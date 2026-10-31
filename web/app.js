@@ -327,31 +327,21 @@
     var t = FORMATOS[formato] || FORMATOS.feed;
     return window.CENA.blob(atual, t[0], t[1]);
   }
-  // legenda sem o nome do app; o crédito da tradução é exigido pela licença CC BY
-  function legenda(v) {
-    return "“" + v.texto + "”\n— " + v.ref + " (Bíblia Livre)\n\ntoquesagrado.com";
-  }
-  function copiarLegenda(txt) {
-    try { return navigator.clipboard.writeText(txt).then(function () { return true; }, function () { return false; }); }
-    catch (e) { return Promise.resolve(false); }
-  }
-  var legendaCopiada = false;
   function mostrarImagem(blob) {
     var url = URL.createObjectURL(blob);
     $("img-salmo").src = url;
-    $("legenda-copiada").hidden = !legendaCopiada;
     $("sobre").hidden = false;
   }
   function compartilhar() { $("formato").hidden = false; }
   // No app das lojas o WebView do Android não tem navigator.share com arquivos:
   // grava a imagem no cache do app e abre o compartilhamento do sistema pelos plugins do Capacitor.
-  function compartilharNativo(blob, formato, txt) {
+  function compartilharNativo(blob, formato) {
     var Cap = window.Capacitor, P = Cap && Cap.isNativePlatform && Cap.isNativePlatform() && Cap.Plugins;
     if (!P || !P.Share || !P.Filesystem) return false;
     var leitor = new FileReader();
     leitor.onload = function () {
       P.Filesystem.writeFile({ path: "versiculo-" + formato + ".jpg", data: String(leitor.result).split(",")[1], directory: "CACHE" })
-        .then(function (r) { return P.Share.share({ title: atual.ref, text: txt, files: [r.uri], dialogTitle: "Compartilhar versículo" }); })
+        .then(function (r) { return P.Share.share({ files: [r.uri], dialogTitle: "Compartilhar versículo" }); })
         .catch(function (err) {
           // a pessoa fechar a lista de apps também cai aqui; só mostra a imagem se foi erro de verdade
           if (!/cancel/i.test(String(err && (err.message || err)))) mostrarImagem(blob);
@@ -363,19 +353,16 @@
   }
   function compartilharComo(formato) {
     $("formato").hidden = true;
-    var txt = legenda(atual);
-    // copia ainda dentro do toque (o iPhone exige): Instagram e outros ignoram o texto que vai junto da imagem
-    legendaCopiada = false;
-    copiarLegenda(txt).then(function (ok) { legendaCopiada = ok; });
+    // só a imagem, sem texto: o Story do Instagram recusa imagem com texto junto (pedido do Flavio)
     gerarImagem(formato).then(function (blob) {
       registrar(atual, "compartilhar");
-      if (compartilharNativo(blob, formato, txt)) return;
+      if (compartilharNativo(blob, formato)) return;
       var arquivo = new File([blob], "versiculo-" + formato + ".jpg", { type: "image/jpeg" });
       var pode = false;
       try { pode = !!(navigator.canShare && navigator.canShare({ files: [arquivo] })); } catch (e) { pode = false; }
       if (!pode) return mostrarImagem(blob);
       // se o compartilhamento do sistema falhar, mostra a imagem para salvar
-      navigator.share({ files: [arquivo], text: txt }).catch(function (err) {
+      navigator.share({ files: [arquivo] }).catch(function (err) {
         if (!err || err.name !== "AbortError") mostrarImagem(blob);
       });
     });
@@ -445,8 +432,6 @@
   // ---------- coleção ----------
   function mostrarColecao() {
     var ids = Object.keys(estado.colecao);
-    $("contador").textContent = ids.length + " de " + window.VERSES.length + " versículos";
-    $("barra").style.width = Math.round(100 * ids.length / window.VERSES.length) + "%";
     var l = $("lista"); l.innerHTML = "";
     if (!ids.length) {
       l.innerHTML = '<p class="vazio">Nada guardado ainda. Raspe uma carta e toque em Guardar.</p>';
