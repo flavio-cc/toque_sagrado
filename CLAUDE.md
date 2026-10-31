@@ -92,7 +92,7 @@ Cada carta em `window.VERSES`:
 ### Compartilhar
 
 - O botão abre a folha `#formato`: Feed 1080x1350 ou Story 1080x1920 (`FORMATOS` em `app.js`).
-- `CENA.blob()` gera JPEG qualidade 0.92 (uns 150 KB).
+- `CENA.blob()` gera JPEG qualidade 0.92 (uns 150 KB). Enquanto gera, aparece só a animação de carregando `#preparando` (pedido do Flavio, sem texto).
 - Compartilha **só a imagem**, sem texto nem link junto (o Story do Instagram falhava com texto; pedido do Flavio).
   No app usa os plugins Share e Filesystem do Capacitor (o WebView do Android não tem `navigator.share` com
   arquivos); no navegador usa `navigator.share` e, sem ele, mostra a imagem para salvar.
@@ -154,8 +154,8 @@ Cada carta em `window.VERSES`:
 
 - Mantenha o estilo do código: JavaScript ES5 dentro de IIFE com `"use strict"`, `var`, nomes e comentários em
   português, sem dependências novas e sem etapa de build em `web/`.
-- Depois de mudar qualquer arquivo listado em `sw.js`, suba a versão de `CACHE` (ex.: `toque-sagrado-v34` para
-  `v35`), senão quem já instalou continua vendo a versão antiga.
+- Depois de mudar qualquer arquivo listado em `sw.js`, suba a versão de `CACHE` (ex.: `toque-sagrado-v35` para
+  `v36`), senão quem já instalou continua vendo a versão antiga.
 - Logo: é o desenho a lápis do Flavio (mão apontando um versículo num livro aberto) com moldura dourada,
   original em `web/logo-opcoes/logo-final-1024.png`. **Nunca redesenhe nem gere um logo novo**; quando
   precisar de outra versão, trate a imagem original dele (recorte, cor, contraste).

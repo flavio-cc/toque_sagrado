@@ -328,7 +328,16 @@
     var t = FORMATOS[formato] || FORMATOS.feed;
     return window.CENA.blob(atual, t[0], t[1]);
   }
+  // animação de carregando enquanto a imagem é desenhada e o compartilhamento abre
+  var esperaPreparo = null;
+  function preparando(sim) {
+    clearTimeout(esperaPreparo);
+    $("preparando").hidden = !sim;
+    // garantia: se o compartilhamento do sistema não responder, o aviso não fica preso na tela
+    if (sim) esperaPreparo = setTimeout(function () { $("preparando").hidden = true; }, 20000);
+  }
   function mostrarImagem(blob) {
+    preparando(false);
     var url = URL.createObjectURL(blob);
     $("img-salmo").src = url;
     $("sobre").hidden = false;
@@ -342,7 +351,7 @@
     var leitor = new FileReader();
     leitor.onload = function () {
       P.Filesystem.writeFile({ path: "versiculo-" + formato + ".jpg", data: String(leitor.result).split(",")[1], directory: "CACHE" })
-        .then(function (r) { return P.Share.share({ files: [r.uri], dialogTitle: "Compartilhar versículo" }); })
+        .then(function (r) { preparando(false); return P.Share.share({ files: [r.uri], dialogTitle: "Compartilhar versículo" }); })
         .catch(function (err) {
           // a pessoa fechar a lista de apps também cai aqui; só mostra a imagem se foi erro de verdade
           if (!/cancel/i.test(String(err && (err.message || err)))) mostrarImagem(blob);
@@ -354,6 +363,7 @@
   }
   function compartilharComo(formato) {
     $("formato").hidden = true;
+    preparando(true);
     // só a imagem, sem texto: o Story do Instagram recusa imagem com texto junto (pedido do Flavio)
     gerarImagem(formato).then(function (blob) {
       registrar(atual, "compartilhar");
@@ -362,11 +372,12 @@
       var pode = false;
       try { pode = !!(navigator.canShare && navigator.canShare({ files: [arquivo] })); } catch (e) { pode = false; }
       if (!pode) return mostrarImagem(blob);
+      preparando(false);
       // se o compartilhamento do sistema falhar, mostra a imagem para salvar
       navigator.share({ files: [arquivo] }).catch(function (err) {
         if (!err || err.name !== "AbortError") mostrarImagem(blob);
       });
-    });
+    }, function () { preparando(false); });
   }
   $("f-feed").onclick = function () { compartilharComo("feed"); };
   $("f-story").onclick = function () { compartilharComo("story"); };

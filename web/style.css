@@ -213,3 +213,10 @@ h1 { margin: 0; font: 700 20px var(--display); font-variant: small-caps; letter-
 .anuncio-simulado strong { font-size: 22px; }
 .anuncio-simulado span { font: 700 40px var(--sans); color: #e7c56d; }
 .anuncio-simulado .link { color: #aaa; }
+
+/* aviso enquanto a imagem de compartilhar é gerada */
+.preparando { z-index: 60; background: rgba(35, 28, 20, .55); }
+.girando { display: inline-block; width: 46px; height: 46px; border-radius: 50%;
+  border: 3px solid rgba(227, 195, 121, .35); border-top-color: var(--ouro-claro); animation: girar .8s linear infinite; }
+@keyframes girar { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .girando { animation-duration: 2.4s; } }
