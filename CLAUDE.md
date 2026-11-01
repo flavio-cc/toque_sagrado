@@ -39,7 +39,8 @@ ouvir a narração, ler o capítulo inteiro e compartilhar a imagem nas redes.
 | `verses.js` | **Gerado.** `window.VERSES` (331 cartas), `window.POP` (popularidade), `window.TEMAS`, `window.HUMORES` |
 | `biblia.js` | **Gerado.** `window.BIBLIA`: Salmos e Provérbios completos, para o leitor de capítulo |
 | `loja.js` | Anúncio premiado (AdMob) e compras (RevenueCat) via Capacitor; no navegador tudo é simulado. Expõe `window.LOJA` |
-| `sw.js` | Service worker com cache offline. **Suba a versão de `CACHE` a cada mudança** em arquivos da lista. As fotos entram no cache conforme aparecem |
+| `versao.js` | **Versão do app** (`self.VERSAO`, ex. `1.0.37`). Aparece no rodapé do Premium e alimenta o cache do `sw.js` e a versão do APK |
+| `sw.js` | Service worker com cache offline. O nome do cache vem de `versao.js`. As fotos entram no cache conforme aparecem |
 | `manifest.json`, `icon*`, `apple-touch-icon.png` | PWA e ícones |
 | `logo.webp` | Logo mostrado no app |
 | `marca.webp` | Marca d'água da imagem compartilhada (só os traços do lápis do logo) |
@@ -154,8 +155,9 @@ Cada carta em `window.VERSES`:
 
 - Mantenha o estilo do código: JavaScript ES5 dentro de IIFE com `"use strict"`, `var`, nomes e comentários em
   português, sem dependências novas e sem etapa de build em `web/`.
-- Depois de mudar qualquer arquivo listado em `sw.js`, suba a versão de `CACHE` (ex.: `toque-sagrado-v36` para
-  `v37`), senão quem já instalou continua vendo a versão antiga.
+- **Toda e qualquer mudança no app sobe a versão em `web/versao.js`** (pedido do Flavio): aumente o último número
+  (`1.0.37` para `1.0.38`) no mesmo commit. É o número que aparece no rodapé do Premium; ele também renova o cache
+  offline (`sw.js`) e vira `versionName`/`versionCode` do APK (`app/android/app/build.gradle` lê o arquivo).
 - **Toda interação que pode demorar mostra carregando** (pedido do Flavio): `carregando(sim, limite)` em `app.js`
   (círculo dourado em tela cheia, sem texto) para compartilhar, anúncio no app, compra e restaurar; a carta e as
   miniaturas da Coleção mostram o círculo ou brilho até a foto chegar; o botão Ouvir gira o anel até o áudio tocar;

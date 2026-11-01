@@ -1,5 +1,9 @@
 apply plugin: 'com.android.application'
 
+// versão lida de web/versao.js (a mesma do rodapé do Premium): 1.0.37 vira versionName "1.0.37" e versionCode 10037
+def versaoApp = (file("../../../web/versao.js").text =~ /VERSAO = "([0-9.]+)"/)[0][1]
+def partesVersao = versaoApp.tokenize('.').collect { it as int }
+
 android {
     namespace = "com.toquesagrado.app"
     compileSdk = rootProject.ext.compileSdkVersion
@@ -7,8 +11,8 @@ android {
         applicationId "com.toquesagrado.app"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1
-        versionName "1.0"
+        versionCode partesVersao[0] * 10000 + partesVersao[1] * 100 + partesVersao[2]
+        versionName versaoApp
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.

@@ -1,5 +1,7 @@
-var CACHE = "toque-sagrado-v36";
-var ARQUIVOS = ["./", "index.html", "style.css", "app.js", "verses.js", "biblia.js", "cena.js", "loja.js", "manifest.json", "icon.svg", "icon-192.png", "icon-512.png", "apple-touch-icon.png", "logo.webp", "marca.webp"];
+// o nome do cache vem da versão do app (versao.js): subir a versão renova o cache de quem já instalou
+importScripts("versao.js");
+var CACHE = "toque-sagrado-" + self.VERSAO;
+var ARQUIVOS = ["./", "index.html", "style.css", "app.js", "verses.js", "biblia.js", "cena.js", "loja.js", "manifest.json", "icon.svg", "icon-192.png", "icon-512.png", "apple-touch-icon.png", "logo.webp", "marca.webp", "versao.js"];
 self.addEventListener("install", function (e) {
   e.waitUntil(caches.open(CACHE).then(function (c) { return c.addAll(ARQUIVOS); }));
 });

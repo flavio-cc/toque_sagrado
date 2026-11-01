@@ -24,7 +24,7 @@ corpo = corpo.replace('<script src="cena.js"></script>', '<script>window.MARCA_S
 def script(nome):
     return "<script>\n" + ler(nome).replace("</script", "<\\/script") + "\n</script>"
 
-corpo = corpo.replace('<script src="app.js"></script>', script("biblia.js") + "\n" + script("app.js"))
+corpo = corpo.replace('<script src="app.js"></script>', script("biblia.js") + "\n" + script("versao.js") + "\n" + script("app.js"))
 for nome in ("verses.js", "cena.js", "loja.js"):
     corpo = corpo.replace('<script src="%s"></script>' % nome, script(nome))
 

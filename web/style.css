@@ -231,3 +231,5 @@ canvas.mini.carregando { background: linear-gradient(100deg, #e6dcc6 30%, #f3ecd
 @media (prefers-reduced-motion: reduce) { .carta.carregando::after, .ouvir.carregando::after { animation-duration: 2.4s; } }
 .ouvir.carregando .ondas { display: none; }
 .ouvir.carregando .tocar { display: inline; opacity: .6; }
+
+.versao { margin: 14px 0 0; font: 500 11px var(--sans); letter-spacing: .06em; color: #a89a7e; opacity: .8; }

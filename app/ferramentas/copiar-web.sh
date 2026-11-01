@@ -5,7 +5,7 @@ set -e
 cd "$(dirname "$0")/.."
 WEB=../web
 rm -rf www && mkdir -p www/audio
-for f in index.html style.css app.js verses.js biblia.js cena.js loja.js manifest.json icon.svg icon-192.png icon-512.png apple-touch-icon.png logo.webp marca.webp; do
+for f in index.html style.css app.js verses.js biblia.js cena.js loja.js manifest.json icon.svg icon-192.png icon-512.png apple-touch-icon.png logo.webp marca.webp versao.js; do
   cp "$WEB/$f" www/
 done
 cp -r "$WEB/audio/cartas" www/audio/

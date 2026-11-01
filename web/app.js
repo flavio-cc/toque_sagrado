@@ -605,6 +605,7 @@
   }
 
   // ---------- início ----------
+  $("versao").textContent = "Versão " + (window.VERSAO || "?");
   var lojaPronta = false;
   window.LOJA.iniciar().then(function () {
     lojaPronta = true;
