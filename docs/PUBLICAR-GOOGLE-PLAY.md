@@ -135,8 +135,10 @@ O workflow **Android Play** recusa montar o AAB se algo disso ainda estiver com 
 
 ## 9. Primeiro envio e teste fechado
 
-1. GitHub > Actions > **Android Play** > Run workflow > faixa `internal`. Ao terminar, baixe o artefato
-   `toque-sagrado-play-aab`.
+1. Com os 4 segredos da chave cadastrados, todo push no branch `google-play` que mexa em `web/` ou `app/` gera o AAB
+   da faixa `internal` (com os IDs de teste, se os reais ainda não existirem). Baixe em Actions > **Android Play** >
+   a execução mais recente > artefato `toque-sagrado-play-aab`. (O botão Run workflow só aparece quando o arquivo do
+   workflow estiver no `main`; até lá, uma execução que falhou pode ser repetida com "Re-run jobs".)
 2. O **primeiro** AAB precisa ir pelo site: Play Console > Testar e lançar > Teste interno > Criar versão > enviar o
    `.aab`. Aceite o Play App Signing. Adicione seu e-mail como testador e instale pelo link de teste.
 3. Teste no celular: compra de assinatura com a conta de teste de licença (Configurações > Teste de licença: inclua

@@ -1,12 +1,18 @@
 # Gera o pacote da Google Play (AAB assinado com a chave de envio) e, se houver conta de serviço, envia à Play.
 # Rodar na mão: Actions > Android Play > Run workflow (escolha a faixa: internal, alpha, beta ou production).
+# Também roda sozinho a cada push no branch google-play que mexa em web/ ou app/, sempre na faixa internal.
+# Na faixa internal o app pode ir com os IDs de teste do AdMob e sem RevenueCat (compras simuladas): serve para o
+# primeiro envio à Play, que libera o cadastro de produtos. As outras faixas exigem os IDs reais.
 # Segredos do repositório (Settings > Secrets and variables > Actions), nunca no código:
 #   ANDROID_KEYSTORE_BASE64, ANDROID_KEYSTORE_SENHA, ANDROID_KEY_ALIAS, ANDROID_KEY_SENHA  (chave de envio)
-#   ADMOB_APP_ID                  (ID do app Android no AdMob, ca-app-pub-...~...)
+#   ADMOB_APP_ID                  (ID do app Android no AdMob, ca-app-pub-...~...; opcional na faixa internal)
 #   PLAY_SERVICE_ACCOUNT_JSON     (opcional: envio automático; sem ele, baixe o AAB e envie pelo Play Console)
 name: Android Play
 
 on:
+  push:
+    branches: [google-play]
+    paths: ["web/**", "app/**", ".github/workflows/android-play.yml"]
   workflow_dispatch:
     inputs:
       faixa:
@@ -28,12 +34,15 @@ jobs:
       ANDROID_KEY_SENHA: ${{ secrets.ANDROID_KEY_SENHA }}
       ADMOB_APP_ID: ${{ secrets.ADMOB_APP_ID }}
       TEM_CONTA_PLAY: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON != '' }}
+      FAIXA: ${{ inputs.faixa || 'internal' }}
     steps:
       - uses: actions/checkout@v5
       - name: Conferir segredos
         run: |
           falta=""
-          for s in ANDROID_KEYSTORE_SENHA ANDROID_KEY_ALIAS ANDROID_KEY_SENHA ADMOB_APP_ID; do
+          exigidos="ANDROID_KEYSTORE_SENHA ANDROID_KEY_ALIAS ANDROID_KEY_SENHA"
+          [ "$FAIXA" = internal ] || exigidos="$exigidos ADMOB_APP_ID"
+          for s in $exigidos; do
             [ -n "$(printenv $s)" ] || falta="$falta $s"
           done
           [ -n "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" ] || falta="$falta ANDROID_KEYSTORE_BASE64"
@@ -42,6 +51,7 @@ jobs:
         working-directory: web
         run: |
           grep -q 'var MODO_TESTE = false' app.js || { echo "::error::MODO_TESTE precisa ser false em app.js"; exit 1; }
+          if [ "$FAIXA" = internal ]; then echo "Faixa internal: IDs de teste permitidos"; exit 0; fi
           grep -q 'anunciosDeTeste: false' loja.js || { echo "::error::anunciosDeTeste precisa ser false em loja.js"; exit 1; }
           if grep -q 'ca-app-pub-3940256099942544' loja.js; then echo "::error::loja.js ainda usa o anúncio de teste do Google"; exit 1; fi
           grep -Eq 'android: "goog_' loja.js || { echo "::error::Falta a chave Android do RevenueCat (goog_...) em loja.js"; exit 1; }
@@ -74,8 +84,8 @@ jobs:
           serviceAccountJsonPlainText: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
           packageName: com.toquesagrado.app
           releaseFiles: app/android/app/build/outputs/bundle/release/app-release.aab
-          track: ${{ inputs.faixa }}
-          status: ${{ inputs.faixa == 'production' && 'draft' || 'completed' }}
+          track: ${{ env.FAIXA }}
+          status: ${{ env.FAIXA == 'production' && 'draft' || 'completed' }}
       - name: Apagar a chave
         if: always()
         run: rm -f "$ANDROID_KEYSTORE_ARQUIVO"
