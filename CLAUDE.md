@@ -26,7 +26,8 @@ ouvir a narração, ler o capítulo inteiro e compartilhar a imagem nas redes.
 | `web/ferramentas/` | Scripts Python: gerar a base, narrar, montar o arquivo único de teste |
 | `web/logo-opcoes/` | Originais do logo (desenho a lápis do Flavio) e versões tratadas |
 | `app/` | Projeto Capacitor 8 que empacota `web/` como app de iPhone e Android |
-| `.github/workflows/` | GitHub Actions: APK de teste do Android e compilação do iOS |
+| `.github/workflows/` | GitHub Actions: APK de teste do Android, AAB da Google Play e compilação do iOS |
+| `docs/` | Política de privacidade (GitHub Pages: flavio-cc.github.io/toque_sagrado/privacidade.html) e o passo a passo da Google Play |
 
 ### Arquivos de `web/`
 
@@ -148,6 +149,10 @@ Cada carta em `window.VERSES`:
 - `app/www/`, `node_modules/` e as cópias geradas dentro de `android/` e `ios/` não vão para o git.
 - GitHub Actions a cada push em `main` que mexa em `web/` ou `app/`:
   - `android.yml`: gera o APK de teste (artefato `toque-sagrado-android-teste`).
+  - `android-play.yml` (só na mão, Run workflow): AAB de release assinado com a chave de envio e, se houver o segredo
+    `PLAY_SERVICE_ACCOUNT_JSON`, envio à faixa escolhida da Play. A chave e o ID do app AdMob vêm de segredos do GitHub
+    (o `build.gradle` lê `ANDROID_KEYSTORE_*`, `ANDROID_KEY_*` e `ADMOB_APP_ID` do ambiente). Ele recusa montar se
+    `loja.js` ou `app.js` ainda estiverem em modo de teste. Passo a passo das contas em `docs/PUBLICAR-GOOGLE-PLAY.md`.
   - `ios.yml`: compila para o simulador sem assinatura. Assinar e enviar ao TestFlight depende da conta
     Apple Developer e de segredos do repositório (certificado, perfil, chave da API), ainda não configurados.
 

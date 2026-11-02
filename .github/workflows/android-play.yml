@@ -1,0 +1,81 @@
+# Gera o pacote da Google Play (AAB assinado com a chave de envio) e, se houver conta de serviço, envia à Play.
+# Rodar na mão: Actions > Android Play > Run workflow (escolha a faixa: internal, alpha, beta ou production).
+# Segredos do repositório (Settings > Secrets and variables > Actions), nunca no código:
+#   ANDROID_KEYSTORE_BASE64, ANDROID_KEYSTORE_SENHA, ANDROID_KEY_ALIAS, ANDROID_KEY_SENHA  (chave de envio)
+#   ADMOB_APP_ID                  (ID do app Android no AdMob, ca-app-pub-...~...)
+#   PLAY_SERVICE_ACCOUNT_JSON     (opcional: envio automático; sem ele, baixe o AAB e envie pelo Play Console)
+name: Android Play
+
+on:
+  workflow_dispatch:
+    inputs:
+      faixa:
+        description: "Faixa da Play (internal, alpha = teste fechado, beta = teste aberto, production)"
+        default: internal
+        type: choice
+        options: [internal, alpha, beta, production]
+
+jobs:
+  aab:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: app
+    env:
+      ANDROID_KEYSTORE_ARQUIVO: ${{ github.workspace }}/envio.jks
+      ANDROID_KEYSTORE_SENHA: ${{ secrets.ANDROID_KEYSTORE_SENHA }}
+      ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+      ANDROID_KEY_SENHA: ${{ secrets.ANDROID_KEY_SENHA }}
+      ADMOB_APP_ID: ${{ secrets.ADMOB_APP_ID }}
+      TEM_CONTA_PLAY: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON != '' }}
+    steps:
+      - uses: actions/checkout@v5
+      - name: Conferir segredos
+        run: |
+          falta=""
+          for s in ANDROID_KEYSTORE_SENHA ANDROID_KEY_ALIAS ANDROID_KEY_SENHA ADMOB_APP_ID; do
+            [ -n "$(printenv $s)" ] || falta="$falta $s"
+          done
+          [ -n "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" ] || falta="$falta ANDROID_KEYSTORE_BASE64"
+          if [ -n "$falta" ]; then echo "::error::Faltam segredos:$falta"; exit 1; fi
+      - name: Conferir que o app está pronto para a loja
+        working-directory: web
+        run: |
+          grep -q 'var MODO_TESTE = false' app.js || { echo "::error::MODO_TESTE precisa ser false em app.js"; exit 1; }
+          grep -q 'anunciosDeTeste: false' loja.js || { echo "::error::anunciosDeTeste precisa ser false em loja.js"; exit 1; }
+          if grep -q 'ca-app-pub-3940256099942544' loja.js; then echo "::error::loja.js ainda usa o anúncio de teste do Google"; exit 1; fi
+          grep -Eq 'android: "goog_' loja.js || { echo "::error::Falta a chave Android do RevenueCat (goog_...) em loja.js"; exit 1; }
+      - name: Recriar a chave de envio
+        run: echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > "$ANDROID_KEYSTORE_ARQUIVO"
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: gradle
+      - run: npm ci
+      - run: npm run sync -- android
+      - name: Montar AAB assinado
+        working-directory: app/android
+        run: ./gradlew bundleRelease --no-daemon
+      - uses: actions/upload-artifact@v4
+        with:
+          name: toque-sagrado-play-aab
+          path: app/android/app/build/outputs/bundle/release/*.aab
+          retention-days: 90
+      - name: Enviar à Google Play
+        if: env.TEM_CONTA_PLAY == 'true'
+        uses: r0adkll/upload-google-play@v1
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+          packageName: com.toquesagrado.app
+          releaseFiles: app/android/app/build/outputs/bundle/release/app-release.aab
+          track: ${{ inputs.faixa }}
+          status: ${{ inputs.faixa == 'production' && 'draft' || 'completed' }}
+      - name: Apagar a chave
+        if: always()
+        run: rm -f "$ANDROID_KEYSTORE_ARQUIVO"
