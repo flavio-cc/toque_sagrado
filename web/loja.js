@@ -55,11 +55,29 @@
     var c = info && (info.customerInfo || info);
     definirPremium(!!(c && c.entitlements && c.entitlements.active && c.entitlements.active[CONFIG.direito]));
   }
+  // Nomes curtos nossos no lugar do título da loja (a Play manda "Nome (Nome do app)").
+  var NOMES = {
+    "$rc_annual": { titulo: "Anual", detalhe: "Por ano" },
+    "$rc_lifetime": { titulo: "Vitalício", detalhe: "Pagamento único" },
+    "$rc_monthly": { titulo: "Mensal", detalhe: "Por mês" }
+  };
+  // dias do período grátis da assinatura (7 no anual), lidos da loja; 0 se não houver
+  function diasGratis(prod) {
+    var f = prod.defaultOption && prod.defaultOption.freePhase, p = f && f.billingPeriod;
+    if (p) return p.value * (p.unit === "WEEK" ? 7 : p.unit === "MONTH" ? 30 : p.unit === "DAY" ? 1 : 0);
+    var i = prod.introPrice;
+    if (i && i.price === 0) return i.periodNumberOfUnits * (i.periodUnit === "WEEK" ? 7 : i.periodUnit === "MONTH" ? 30 : i.periodUnit === "DAY" ? 1 : 0);
+    return 0;
+  }
   function converter(lista, destaque) {
     return (lista || []).map(function (p) {
-      var prod = p.product || {};
-      return { id: p.identifier, titulo: prod.title || p.identifier, preco: prod.priceString || "", detalhe: prod.description || "",
-        destaque: p.identifier === destaque, pacote: p };
+      var prod = p.product || {}, nome = NOMES[p.identifier], preco = prod.priceString || "";
+      var titulo = nome ? nome.titulo : (prod.title || p.identifier).replace(/\s*\([^)]*\)\s*$/, "");
+      var detalhe = nome ? nome.detalhe : "";
+      var dias = diasGratis(prod);
+      if (dias && p.identifier === "$rc_annual") detalhe = dias + " dias grátis, depois " + preco + " por ano";
+      else if (dias) detalhe = dias + " dias grátis";
+      return { id: p.identifier, titulo: titulo, preco: preco, detalhe: detalhe, destaque: p.identifier === destaque, pacote: p };
     });
   }
 

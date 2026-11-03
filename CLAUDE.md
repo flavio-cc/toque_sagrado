@@ -121,7 +121,9 @@ Cada carta em `window.VERSES`:
 - Grátis: a carta do dia + 3 extras por dia (`LIMITE_EXTRAS`) + até 3 por anúncio premiado (`LIMITE_ANUNCIOS`).
 - Premium: cartas ilimitadas e sem anúncios. Produtos: `premium_anual` (7 dias grátis), `premium_mensal`,
   `premium_vitalicio`; ofertas consumíveis `oferta_pequena`, `oferta_media`, `oferta_grande`.
-  RevenueCat: entitlement `premium`, offerings `default` e `ofertas`.
+  RevenueCat: entitlement `premium`, offerings `default` e `ofertas`. A tela do Premium usa nomes curtos nossos
+  (`NOMES` em `loja.js`: Anual, Vitalício, Mensal) em vez do título da Play, que vem com "(nome do app)" no fim;
+  os dias grátis vêm da loja (`diasGratis()`: `defaultOption.freePhase` ou `introPrice` com preço 0).
 - `MODO_TESTE = true` em `app.js` libera cartas ilimitadas para testar. Deixe `false` em produção.
 - `loja.js` usa os IDs de **teste** do Google AdMob e chaves vazias do RevenueCat até as contas existirem.
   O que trocar antes de publicar está em `app/LEIA-ME.md`.
