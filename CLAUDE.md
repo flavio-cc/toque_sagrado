@@ -33,13 +33,14 @@ ouvir a narração, ler o capítulo inteiro e compartilhar a imagem nas redes.
 
 | Arquivo | Papel |
 | --- | --- |
-| `index.html` | Telas e folhas (sheets). Ordem dos scripts importa: `verses.js`, `cena.js`, `loja.js`, `app.js` (o `biblia.js` é carregado sob demanda pelo leitor) |
+| `index.html` | Telas e folhas (sheets). Ordem dos scripts importa: `verses.js`, `cena.js`, `loja.js`, `lembrete.js`, `app.js` (o `biblia.js` é carregado sob demanda pelo leitor) |
 | `style.css` | Visual "papel e lápis": fundo de papel, dourado, fonte EB Garamond na interface |
 | `app.js` | Toda a lógica: estado, escolha do versículo, raspagem, botões, coleção, leitor, compartilhar, limites diários, Premium |
 | `cena.js` | Desenha a imagem de cada carta (foto do tema + texto; cenas procedurais em canvas só se a foto falhar) e gera a imagem de compartilhar. Expõe `window.CENA` |
 | `verses.js` | **Gerado.** `window.VERSES` (331 cartas), `window.POP` (popularidade), `window.TEMAS`, `window.HUMORES` |
 | `biblia.js` | **Gerado.** `window.BIBLIA`: Salmos e Provérbios completos, para o leitor de capítulo |
 | `loja.js` | Anúncio premiado (AdMob) e compras (RevenueCat) via Capacitor; no navegador tudo é simulado. Expõe `window.LOJA` |
+| `lembrete.js` | Lembrete diário: notificação local agendada no celular (sem servidor nem internet), 7 avisos, um por dia da semana. Expõe `window.LEMBRETE` |
 | `versao.js` | **Versão do app** (`self.VERSAO`, ex. `1.0.37`). Aparece no rodapé do Premium e alimenta o cache do `sw.js` e a versão do APK |
 | `sw.js` | Service worker com cache offline. O nome do cache vem de `versao.js`. As fotos entram no cache conforme aparecem |
 | `manifest.json`, `icon*`, `apple-touch-icon.png` | PWA e ícones |
@@ -128,6 +129,19 @@ Cada carta em `window.VERSES`:
   Nos textos das lojas evite "raspadinha", "prêmio", "sorte" (soam como jogo de azar).
 - Narração de capítulos, temas visuais e widget estão planejados para depois.
 
+### Lembrete diário
+
+- Botão "Lembrete diário" na Coleção abre a folha `#lembrete` (horário, ligar, desligar). Grátis para todos, desligado
+  por padrão; a escolha fica em `localStorage["toque-lembrete"]`.
+- No app, `lembrete.js` usa `@capacitor/local-notifications`: pede a permissão de notificação ao ligar (Android 13+),
+  cria o canal `lembrete` e agenda 7 notificações (IDs 7101–7107, `schedule.on` com `weekday`, `hour`, `minute`), cada
+  uma com um texto. Ao abrir o app, reagenda sem pedir permissão de novo.
+- Usa alarme comum (`isExactNotification: false`); o `AndroidManifest.xml` remove a permissão `SCHEDULE_EXACT_ALARM` que
+  o plugin declara. Ícone da barra: `res/drawable/ic_stat_lembrete.xml` (o sol da aba Hoje), cor dourada no
+  `capacitor.config.json`.
+- Os textos não revelam o versículo (para não estragar o raspar) e seguem a regra de evitar "prêmio", "sorte" e "raspadinha".
+- No navegador não toca: a escolha fica guardada e o painel avisa que o aviso só funciona no app.
+
 ## Como testar
 
 - Navegador: `cd web && python3 -m http.server 8000` e abra http://localhost:8000.
@@ -141,8 +155,9 @@ Cada carta em `window.VERSES`:
 
 ## Apps das lojas (`app/`)
 
-- Capacitor 8.6, appId `com.toquesagrado.app`, plugins `@capacitor-community/admob`, `@capacitor/share`, `@capacitor/filesystem` (compartilhar a imagem no app) e
-  `@revenuecat/purchases-capacitor`, acessados em `loja.js` por `window.Capacitor.Plugins`.
+- Capacitor 8.6, appId `com.toquesagrado.app`, plugins `@capacitor-community/admob`, `@capacitor/share`, `@capacitor/filesystem` (compartilhar a imagem no app),
+  `@capacitor/local-notifications` (lembrete diário, em `lembrete.js`) e `@revenuecat/purchases-capacitor`, acessados
+  por `window.Capacitor.Plugins`.
 - `npm run sync` (dentro de `app/`) roda `ferramentas/copiar-web.sh`, que copia os arquivos de `web/` para
   `app/www/`, e depois `npx cap sync`. **Se criar um arquivo novo em `web/` que o app usa, inclua-o na lista do
   `copiar-web.sh`** (e na lista do `sw.js`).

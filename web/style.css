@@ -179,6 +179,13 @@ h1 { margin: 0; font: 700 20px var(--display); font-variant: small-caps; letter-
 .formato-opcoes .f-story { width: 32px; height: 57px; }
 .formato-opcoes strong { font: 700 17px var(--display); }
 .formato-opcoes small { font: 500 12px var(--sans); color: #cfc2a6; }
+/* lembrete diário */
+.lembrete-rotulo { font: 600 11px var(--sans); letter-spacing: .14em; text-transform: uppercase; color: #cfc2a6; margin-top: 4px; }
+.lembrete-hora { font: 700 30px var(--display); color: #f3ead6; background: rgba(231, 197, 109, .08); border: 1px solid rgba(231, 197, 109, .45);
+  border-radius: 12px; padding: 6px 14px; text-align: center; color-scheme: dark; }
+.lembrete-botao { cursor: pointer; width: 100%; padding: 12px 14px; border-radius: 12px; border: 1px solid #e7c56d; background: rgba(231, 197, 109, .14);
+  color: #f3ead6; font: 700 17px var(--display); }
+.lembrete-botao:disabled { opacity: .5; cursor: default; }
 .formato-nota { color: #cfc2a6; font-size: 13px !important; }
 
 /* Premium e ofertas */

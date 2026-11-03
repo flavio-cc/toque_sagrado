@@ -587,10 +587,42 @@
   $("simular-sem-premium").onclick = function () { window.LOJA.simularPremium(false); montarPremium(); };
   window.LOJA.aoMudar(function () { atualizarExtra(); if (!$("premium").hidden) montarPremium(); });
 
+  // ---------- lembrete diário ----------
+  function atualizarLembrete() {
+    var L = window.LEMBRETE, ligado = L.ativo();
+    $("sub-lembrete").textContent = ligado ? "Todo dia às " + L.hora() : "Desligado";
+    $("lembrete-ligar").textContent = ligado ? "Salvar horário" : "Ligar lembrete";
+    $("lembrete-desligar").hidden = !ligado;
+  }
+  $("btn-lembrete").onclick = function () {
+    $("lembrete-hora").value = window.LEMBRETE.hora();
+    $("lembrete-aviso").textContent = window.LEMBRETE.nativo ? "" : "No navegador a escolha fica guardada, mas o aviso só toca no app instalado.";
+    atualizarLembrete();
+    $("lembrete").hidden = false;
+  };
+  $("lembrete-ligar").onclick = function () {
+    $("lembrete-ligar").disabled = true;
+    window.LEMBRETE.ligar($("lembrete-hora").value).then(function (r) {
+      $("lembrete-ligar").disabled = false;
+      $("lembrete-aviso").textContent = r.ok ? "Pronto: o aviso vem todo dia às " + window.LEMBRETE.hora() + "."
+        : r.motivo === "negado" ? "O celular não permitiu notificações. Libere em Configurações > Apps > Toque Sagrado > Notificações."
+        : "Não foi possível agendar agora. Tente de novo.";
+      atualizarLembrete();
+    });
+  };
+  $("lembrete-desligar").onclick = function () {
+    window.LEMBRETE.desligar().then(function () {
+      $("lembrete-aviso").textContent = "Lembrete desligado.";
+      atualizarLembrete();
+    });
+  };
+  $("fechar-lembrete").onclick = function () { $("lembrete").hidden = true; };
+  atualizarLembrete();
+
   // ---------- recomeçar (só no modo de teste) ----------
   // Apaga coleção, sequência, humor e preferências; pede um segundo toque para confirmar.
   function recomecar() {
-    try { localStorage.removeItem(CHAVE); localStorage.removeItem("toque-premium"); } catch (e) { /* sem armazenamento */ }
+    try { localStorage.removeItem(CHAVE); localStorage.removeItem("toque-premium"); localStorage.removeItem("toque-lembrete"); } catch (e) { /* sem armazenamento */ }
     location.reload();
   }
   // no link de teste (navegador) o botão aparece sempre; no app das lojas, só no modo de teste
