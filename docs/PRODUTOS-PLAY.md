@@ -98,13 +98,28 @@ anual: US$ 8,99, CA$ 12,99, € 9,99). Para mudar um preço depois: abra o produ
 país e edite pelo lápis. Mudar o preço de uma assinatura não afeta quem já assina, a menos que você escolha
 migrar os assinantes.
 
-## 5. Depois do cadastro
+## 5. RevenueCat — feito em 03/11/2026, menos a conta de serviço
 
-1. **RevenueCat**: criar o projeto, app Android `com.toquesagrado.app`, ligar a conta de serviço da Play,
-   importar os 6 produtos, criar o entitlement `premium` (anual, mensal, vitalício) e as offerings
-   `default` e `ofertas`. Copiar a chave pública `goog_...`.
-2. Trocar em `web/loja.js` a chave do RevenueCat e os IDs de anúncio de teste pelos reais, e subir a versão
-   em `web/versao.js`. Cadastrar o segredo `ADMOB_APP_ID` no GitHub.
+- Projeto **Toque Sagrado**, app Play Store **Toque Sagrado (Android)**, pacote `com.toquesagrado.app`.
+- Produtos cadastrados à mão (a importação automática precisa da conta de serviço):
+  `premium_anual:anual` e `premium_mensal:mensal` (assinaturas), `premium_vitalicio` (não consumível),
+  `oferta_pequena`, `oferta_media` e `oferta_grande` (consumíveis).
+- Entitlement `premium` ligado a anual, mensal e vitalício. As ofertas não liberam nada.
+- Offering `default` com os pacotes `$rc_annual`, `$rc_lifetime` e `$rc_monthly`, nessa ordem. O app destaca o
+  `$rc_annual`.
+- Offering `ofertas` com os pacotes `oferta_pequena`, `oferta_media` e `oferta_grande`.
+- A chave pública `goog_...` está em `web/loja.js` (a partir da 1.0.39). Ela foi feita para ficar no app; as
+  chaves **secretas** do RevenueCat nunca vão para o repositório.
+- Falta: conta de serviço do Google Cloud com acesso ao Play Console, e o envio do arquivo `.json` em
+  RevenueCat > Apps > Toque Sagrado (Android) > Service Account Credentials JSON. Quem baixa e envia o
+  arquivo é o dono da conta; ele é secreto e não vai para o repositório. Sem isso, o RevenueCat não confirma
+  as compras.
+
+## 6. Depois do cadastro
+
+1. Conta de serviço (item acima).
+2. Trocar em `web/loja.js` os IDs de anúncio de teste pelos reais e subir a versão em `web/versao.js`.
+   Cadastrar o segredo `ADMOB_APP_ID` no GitHub.
 3. **Teste de licença**: Play Console > Configurações > Teste de licença, incluir as contas da lista
    "htd teste" para comprar sem cobrança real.
 4. Testar compra de cada produto no app instalado pelo teste interno.

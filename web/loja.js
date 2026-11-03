@@ -5,7 +5,7 @@
 
   // Preencher quando as contas existirem. Os anúncios usam os IDs de teste do Google até lá.
   var CONFIG = {
-    revenuecat: { ios: "", android: "" },          // chaves públicas do projeto no RevenueCat (appl_..., goog_...)
+    revenuecat: { ios: "", android: "goog_YxOLXwlgaTenLSJEUsNGWYuciZE" },  // chaves públicas do projeto no RevenueCat (appl_..., goog_...)
     admob: {
       ios: "ca-app-pub-3940256099942544/1712485313",     // anúncio premiado de teste (Google)
       android: "ca-app-pub-3940256099942544/5224354917"  // anúncio premiado de teste (Google)
