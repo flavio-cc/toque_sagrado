@@ -98,10 +98,10 @@ anual: US$ 8,99, CA$ 12,99, € 9,99). Para mudar um preço depois: abra o produ
 país e edite pelo lápis. Mudar o preço de uma assinatura não afeta quem já assina, a menos que você escolha
 migrar os assinantes.
 
-## 5. RevenueCat — feito em 03/11/2026, menos a conta de serviço
+## 5. RevenueCat — feito em 03/11/2026
 
 - Projeto **Toque Sagrado**, app Play Store **Toque Sagrado (Android)**, pacote `com.toquesagrado.app`.
-- Produtos cadastrados à mão (a importação automática precisa da conta de serviço):
+- Produtos cadastrados à mão (antes de existir a conta de serviço):
   `premium_anual:anual` e `premium_mensal:mensal` (assinaturas), `premium_vitalicio` (não consumível),
   `oferta_pequena`, `oferta_media` e `oferta_grande` (consumíveis).
 - Entitlement `premium` ligado a anual, mensal e vitalício. As ofertas não liberam nada.
@@ -110,16 +110,34 @@ migrar os assinantes.
 - Offering `ofertas` com os pacotes `oferta_pequena`, `oferta_media` e `oferta_grande`.
 - A chave pública `goog_...` está em `web/loja.js` (a partir da 1.0.39). Ela foi feita para ficar no app; as
   chaves **secretas** do RevenueCat nunca vão para o repositório.
-- Falta: conta de serviço do Google Cloud com acesso ao Play Console, e o envio do arquivo `.json` em
-  RevenueCat > Apps > Toque Sagrado (Android) > Service Account Credentials JSON. Quem baixa e envia o
-  arquivo é o dono da conta; ele é secreto e não vai para o repositório. Sem isso, o RevenueCat não confirma
-  as compras.
+- Credenciais: **Valid credentials** (os 3 testes do RevenueCat passaram). Na primeira tentativa, "validar
+  compras de assinatura" falhou por alguns minutos, enquanto a Google liberava as permissões recém-dadas;
+  depois passou sozinho com "Check again".
+- Notificações em tempo real ligadas: o RevenueCat recebeu a notificação de teste da Play.
 
-## 6. Depois do cadastro
+## 6. Conta de serviço e notificações (Google Cloud + Play) — feito em 03/11/2026
 
-1. Conta de serviço (item acima).
-2. Trocar em `web/loja.js` os IDs de anúncio de teste pelos reais e subir a versão em `web/versao.js`.
+1. Google Cloud: projeto **Toque Sagrado** (`toque-sagrado`), separado dos outros projetos da conta.
+2. APIs ativadas no projeto: Google Play Android Developer API, Google Play Developer Reporting API e
+   Cloud Pub/Sub API (sem esta última, o RevenueCat não oferece tópico para as notificações).
+3. Conta de serviço `revenuecat@toque-sagrado.iam.gserviceaccount.com`, com os papéis **Pub/Sub Admin** e
+   **Monitoring Viewer** (pedidos pelo RevenueCat para as notificações).
+4. Play Console > Usuários e permissões > Convidar: a conta de serviço, só no app Toque Sagrado, com
+   "Ver informações do app", "Ver dados financeiros" e "Gerenciar pedidos e assinaturas". Status: Ativo.
+5. Chave JSON criada na aba Keys da conta de serviço e enviada em RevenueCat > Apps > Toque Sagrado (Android) >
+   Service Account Credentials JSON. O arquivo é secreto: fica fora do repositório e não deve ser enviado a
+   ninguém. Se vazar, apague a chave no Google Cloud e crie outra.
+6. Notificações: no RevenueCat, tópico `Play-Store-Notifications` > Connect to Google. Na Play, Configuração
+   de monetização > Notificações do desenvolvedor em tempo real: ativado, tópico
+   `projects/toque-sagrado/topics/Play-Store-Notifications`, conteúdo "Assinaturas, compras anuladas e todos
+   os produtos únicos" (assim o vitalício e as ofertas também avisam). O botão "Enviar notificação de teste"
+   confirma a ligação.
+
+## 7. Depois do cadastro
+
+1. Trocar em `web/loja.js` os IDs de anúncio de teste pelos reais e subir a versão em `web/versao.js`.
    Cadastrar o segredo `ADMOB_APP_ID` no GitHub.
-3. **Teste de licença**: Play Console > Configurações > Teste de licença, incluir as contas da lista
+2. **Teste de licença**: Play Console > Configurações > Teste de licença, incluir as contas da lista
    "htd teste" para comprar sem cobrança real.
+3. Enviar ao teste interno um AAB da 1.0.39 ou mais nova (a primeira com a chave do RevenueCat).
 4. Testar compra de cada produto no app instalado pelo teste interno.
