@@ -42,6 +42,7 @@
   try { premium = localStorage.getItem(CHAVE) === "1"; } catch (e) { /* sem armazenamento */ }
   var aoMudar = [];
   var pacotes = { premium: [], oferta: [] };
+  var anunciosProntos = null;  // promessa do consentimento e do AdMob.initialize; o anúncio espera por ela
 
   function definirPremium(sim) {
     sim = !!sim;
@@ -67,7 +68,7 @@
     if (!nativo) return Promise.resolve();
     var passos = [];
     if (AdMob) {
-      passos.push(
+      passos.push(anunciosProntos =
         // aviso de rastreamento da Apple e formulário de consentimento (quando a lei exige), antes de iniciar os anúncios
         (plataforma === "ios" && AdMob.requestTrackingAuthorization ? AdMob.requestTrackingAuthorization().catch(function () {}) : Promise.resolve())
           .then(function () { return AdMob.requestConsentInfo ? AdMob.requestConsentInfo() : null; })
@@ -97,22 +98,41 @@
   }
 
   // ---------- anúncio premiado ----------
-  // Resolve true só se a pessoa assistiu até o fim e ganhou a carta.
+  // Resolve true só se a pessoa assistiu até o fim e ganhou a carta; false se ela fechou antes.
+  // Rejeita se o vídeo não veio: falhou ao carregar ou ao abrir, ou não abriu em 25 segundos (sem internet, sem anúncio).
   function assistirAnuncio() {
     if (!nativo || !AdMob) return anuncioSimulado();
-    return new Promise(function (ok) {
-      var ganhou = false, ouvintes = [];
-      function fim(r) {
-        ouvintes.forEach(function (o) { o.then ? o.then(function (h) { h.remove(); }) : o.remove(); });
-        ok(r);
-      }
-      ouvintes.push(AdMob.addListener("onRewardedVideoAdReward", function () { ganhou = true; }));
-      ouvintes.push(AdMob.addListener("onRewardedVideoAdDismissed", function () { fim(ganhou); }));
-      ouvintes.push(AdMob.addListener("onRewardedVideoAdFailedToLoad", function () { fim(false); }));
-      AdMob.prepareRewardVideoAd({ adId: CONFIG.admob[plataforma], isTesting: CONFIG.anunciosDeTeste })
-        .then(function () { return AdMob.showRewardVideoAd(); })
-        .then(function () { ganhou = true; })
-        .catch(function () { fim(false); });
+    // espera o AdMob iniciar, mas no máximo 8 segundos (se o início travar, tenta assim mesmo)
+    var iniciado = Promise.race([anunciosProntos || Promise.resolve(), new Promise(function (ok) { setTimeout(ok, 8000); })]);
+    return iniciado.then(function () {
+      return new Promise(function (ok, erro) {
+        var ganhou = false, acabou = false, ouvintes = [];
+        function fim(r, motivo) {
+          if (acabou) return;
+          acabou = true;
+          clearTimeout(espera);
+          ouvintes.forEach(function (o) {
+            try { if (o && o.then) o.then(function (h) { h.remove(); }); else if (o && o.remove) o.remove(); } catch (e) { /* já removido */ }
+          });
+          if (r === null) erro(new Error(motivo || "indisponível")); else ok(r);
+        }
+        var espera = setTimeout(function () { fim(null, "demorou demais"); }, 25000);
+        function ouvir(evento, f) {
+          try { ouvintes.push(AdMob.addListener(evento, f)); } catch (e) { /* plugin sem o evento */ }
+        }
+        ouvir("onRewardedVideoAdShowed", function () { clearTimeout(espera); });
+        ouvir("onRewardedVideoAdReward", function () { ganhou = true; });
+        ouvir("onRewardedVideoAdDismissed", function () { fim(ganhou); });
+        function falha(etapa) {
+          return function (e) { fim(null, etapa + (e && (e.code !== undefined || e.message) ? ": " + [e.code, e.message].join(" ") : "")); };
+        }
+        ouvir("onRewardedVideoAdFailedToLoad", falha("não carregou"));
+        ouvir("onRewardedVideoAdFailedToShow", falha("não abriu"));
+        AdMob.prepareRewardVideoAd({ adId: CONFIG.admob[plataforma], isTesting: CONFIG.anunciosDeTeste })
+          .then(function () { return AdMob.showRewardVideoAd(); })
+          .then(function () { ganhou = true; })
+          .catch(falha("erro"));
+      });
     });
   }
   function anuncioSimulado() {
@@ -166,6 +186,7 @@
     nativo: nativo,
     plataforma: plataforma,
     simulada: simulada,
+    anunciosDeTeste: CONFIG.anunciosDeTeste,
     iniciar: iniciar,
     premium: function () { return premium; },
     aoMudar: function (f) { aoMudar.push(f); },

@@ -40,7 +40,7 @@ ouvir a narração, ler o capítulo inteiro e compartilhar a imagem nas redes.
 | `verses.js` | **Gerado.** `window.VERSES` (331 cartas), `window.POP` (popularidade), `window.TEMAS`, `window.HUMORES` |
 | `biblia.js` | **Gerado.** `window.BIBLIA`: Salmos e Provérbios completos, para o leitor de capítulo |
 | `loja.js` | Anúncio premiado (AdMob) e compras (RevenueCat) via Capacitor; no navegador tudo é simulado. Expõe `window.LOJA` |
-| `lembrete.js` | Lembrete diário: notificação local agendada no celular (sem servidor nem internet), 7 avisos, um por dia da semana. Expõe `window.LEMBRETE` |
+| `lembrete.js` | Lembrete diário: notificação local agendada no celular (sem servidor nem internet), um aviso por dia, ligado às 07:00. Expõe `window.LEMBRETE` |
 | `versao.js` | **Versão do app** (`self.VERSAO`, ex. `1.0.37`). Aparece no rodapé do Premium e alimenta o cache do `sw.js` e a versão do APK |
 | `sw.js` | Service worker com cache offline. O nome do cache vem de `versao.js`. As fotos entram no cache conforme aparecem |
 | `manifest.json`, `icon*`, `apple-touch-icon.png` | PWA e ícones |
@@ -125,20 +125,26 @@ Cada carta em `window.VERSES`:
 - `MODO_TESTE = true` em `app.js` libera cartas ilimitadas para testar. Deixe `false` em produção.
 - `loja.js` usa os IDs de **teste** do Google AdMob e chaves vazias do RevenueCat até as contas existirem.
   O que trocar antes de publicar está em `app/LEIA-ME.md`.
+- Anúncio premiado (`assistirAnuncio()` em `loja.js`): espera o `AdMob.initialize` (até 8 s), desiste se o vídeo não abrir
+  em 25 s ou se vier `onRewardedVideoAdFailedToLoad`/`FailedToShow`, e então rejeita; o `app.js` tira o carregando e
+  escreve "O vídeo não carregou" no botão (com o motivo, enquanto `anunciosDeTeste` for `true`).
 - Princípios: o versículo nunca é pago; compartilhar é sempre grátis; anúncio só quando a pessoa escolhe assistir.
   Nos textos das lojas evite "raspadinha", "prêmio", "sorte" (soam como jogo de azar).
 - Narração de capítulos, temas visuais e widget estão planejados para depois.
 
 ### Lembrete diário
 
-- Botão "Lembrete diário" na Coleção abre a folha `#lembrete` (horário, ligar, desligar). Grátis para todos, desligado
-  por padrão; a escolha fica em `localStorage["toque-lembrete"]`.
-- No app, `lembrete.js` usa `@capacitor/local-notifications`: pede a permissão de notificação ao ligar (Android 13+),
-  cria o canal `lembrete` e agenda 7 notificações (IDs 7101–7107, `schedule.on` com `weekday`, `hour`, `minute`), cada
-  uma com um texto. Ao abrir o app, reagenda sem pedir permissão de novo.
-- Usa alarme comum (`isExactNotification: false`); o `AndroidManifest.xml` remove a permissão `SCHEDULE_EXACT_ALARM` que
-  o plugin declara. Ícone da barra: `res/drawable/ic_stat_lembrete.xml` (o sol da aba Hoje), cor dourada no
-  `capacitor.config.json`.
+- Botão "Lembrete diário" na Coleção abre a folha `#lembrete` (horário, ligar, testar, desligar). Grátis para todos,
+  **vem ligado às 07:00** (pedido do Flavio); a escolha fica em `localStorage["toque-lembrete"]` (`ativo`, `hora`, `pedido`).
+- No app, `lembrete.js` usa `@capacitor/local-notifications`. A permissão de notificação (Android 13+) é pedida uma vez,
+  1,5 s depois da primeira carta raspada (`LEMBRETE.primeiraCarta()` em `revelar()`); se a pessoa negar, o lembrete desliga.
+  Ao ligar pela folha, pede de novo. Ao abrir o app, reagenda sem pedir permissão.
+- Agenda **um** aviso diário (ID 7100, `schedule.on` com `hour`, `minute`, `second: 0`); o texto muda a cada reagendamento.
+  Cancela os IDs 7101–7107 da 1.0.40 (que eram um por dia da semana). "Testar aviso agora" manda o ID 7199 em 5 segundos.
+- Alarme comum que acorda o celular: `isExactNotification: false` e `allowWhileIdle: true` (sem o `allowWhileIdle` o
+  Android segura o aviso até a tela acender: provável motivo de o aviso não aparecer na 1.0.40). Pode atrasar até 1 hora.
+  O `AndroidManifest.xml` remove a permissão `SCHEDULE_EXACT_ALARM` que o plugin declara. Canal `lembrete` com importância 4.
+  Ícone da barra: `res/drawable/ic_stat_lembrete.xml` (o sol da aba Hoje), cor dourada.
 - Os textos não revelam o versículo (para não estragar o raspar) e seguem a regra de evitar "prêmio", "sorte" e "raspadinha".
 - No navegador não toca: a escolha fica guardada e o painel avisa que o aviso só funciona no app.
 

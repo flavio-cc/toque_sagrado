@@ -286,6 +286,8 @@
     if (ehDiaria && !estado.dia.diaria) { estado.dia.diaria = true; salvar(); }
     contarDia();
     if (navigator.vibrate) navigator.vibrate(30);
+    // o lembrete vem ligado às 07:00; a permissão de notificação é pedida uma vez, depois da primeira carta
+    setTimeout(function () { window.LEMBRETE.primeiraCarta().then(atualizarLembrete); }, 1500);
   }
 
   function atualizarBotoes() {
@@ -499,12 +501,17 @@
     // o anúncio só passa quando a pessoa escolhe, e a carta só vem se ela assistir até o fim
     $("btn-carta-extra").disabled = true;
     // no app o anúncio leva uns segundos para carregar; no navegador a simulação já tem a própria tela
-    if (window.LOJA.nativo) carregando(true, 60000);
+    if (window.LOJA.nativo) carregando(true, 40000);
     window.LOJA.assistirAnuncio().then(function (ganhou) {
       carregando(false);
       if (ganhou) { estado.dia.anuncios = (estado.dia.anuncios || 0) + 1; salvar(); abrirExtra(); }
       atualizarExtra();
-    }, function () { carregando(false); atualizarExtra(); });
+    }, function (e) {
+      carregando(false); atualizarExtra();
+      // com os anúncios de teste, mostra o motivo para achar o problema
+      $("sub-extra").textContent = "O vídeo não carregou. Tente de novo em instantes." +
+        (window.LOJA.anunciosDeTeste && e && e.message ? " (" + e.message + ")" : "");
+    });
   };
   $("link-premium").onclick = abrirPremium;
   $("btn-premium").onclick = abrirPremium;
@@ -613,6 +620,17 @@
   $("lembrete-desligar").onclick = function () {
     window.LEMBRETE.desligar().then(function () {
       $("lembrete-aviso").textContent = "Lembrete desligado.";
+      atualizarLembrete();
+    });
+  };
+  $("lembrete-testar").onclick = function () {
+    $("lembrete-testar").disabled = true;
+    window.LEMBRETE.testar().then(function (r) {
+      $("lembrete-testar").disabled = false;
+      $("lembrete-aviso").textContent = r.ok ? "Aviso de teste enviado: ele chega em alguns segundos."
+        : r.motivo === "navegador" ? "O aviso de teste só funciona no app instalado."
+        : r.motivo === "negado" ? "O celular não permitiu notificações. Libere em Configurações > Apps > Toque Sagrado > Notificações."
+        : "Não foi possível enviar o teste agora. Tente de novo.";
       atualizarLembrete();
     });
   };
