@@ -627,10 +627,12 @@
     $("lembrete-testar").disabled = true;
     window.LEMBRETE.testar().then(function (r) {
       $("lembrete-testar").disabled = false;
-      $("lembrete-aviso").textContent = r.ok ? "Aviso de teste enviado: ele chega em alguns segundos."
+      $("lembrete-aviso").textContent = (r.ok ? "Enviamos dois avisos de teste: um agora e outro daqui a 10 segundos."
         : r.motivo === "navegador" ? "O aviso de teste só funciona no app instalado."
         : r.motivo === "negado" ? "O celular não permitiu notificações. Libere em Configurações > Apps > Toque Sagrado > Notificações."
-        : "Não foi possível enviar o teste agora. Tente de novo.";
+        : "Não foi possível enviar o teste agora. Tente de novo.") +
+        // enquanto o app está em teste (anúncios de teste), mostra o diagnóstico para achar problemas
+        (window.LOJA.anunciosDeTeste && r.diag ? " [" + r.diag + "]" : "");
       atualizarLembrete();
     });
   };

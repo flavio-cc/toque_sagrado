@@ -140,7 +140,8 @@ Cada carta em `window.VERSES`:
   1,5 s depois da primeira carta raspada (`LEMBRETE.primeiraCarta()` em `revelar()`); se a pessoa negar, o lembrete desliga.
   Ao ligar pela folha, pede de novo. Ao abrir o app, reagenda sem pedir permissão.
 - Agenda **um** aviso diário (ID 7100, `schedule.on` com `hour`, `minute`, `second: 0`); o texto muda a cada reagendamento.
-  Cancela os IDs 7101–7107 da 1.0.40 (que eram um por dia da semana). "Testar aviso agora" manda o ID 7199 em 5 segundos.
+  Cancela os IDs 7101–7107 da 1.0.40 (que eram um por dia da semana). "Testar aviso agora" manda o ID 7198 na hora e o 7199 em 10 segundos e,
+  enquanto `anunciosDeTeste` for `true`, mostra um diagnóstico (notificações ativas, canais, pendentes, alarme exato).
 - Alarme comum que acorda o celular: `isExactNotification: false` e `allowWhileIdle: true` (sem o `allowWhileIdle` o
   Android segura o aviso até a tela acender: provável motivo de o aviso não aparecer na 1.0.40). Pode atrasar até 1 hora.
   O `AndroidManifest.xml` remove a permissão `SCHEDULE_EXACT_ALARM` que o plugin declara. Canal `lembrete` com importância 4.

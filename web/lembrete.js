@@ -9,7 +9,7 @@
   var LN = nativo && Cap.Plugins.LocalNotifications;
   var CHAVE = "toque-lembrete";
   var CANAL = "lembrete";
-  // um aviso diário (ID 7100); 7101–7107 eram os avisos por dia da semana da 1.0.40 e são cancelados; 7199 é o teste
+  // um aviso diário (ID 7100); 7101–7107 eram os avisos por dia da semana da 1.0.40 e são cancelados; 7198 e 7199 são o teste
   var ID = 7100, ID_TESTE = 7199, IDS_ANTIGOS = [7101, 7102, 7103, 7104, 7105, 7106, 7107];
   var TITULO = "Sua carta do dia chegou";
   var TEXTOS = [
@@ -83,17 +83,37 @@
     pref.ativo = false; guardar();
     return cancelar();
   }
-  // aviso de teste daqui a 5 segundos, para a pessoa ver como chega
+  // Teste: um aviso na hora (mostra se o celular exibe notificações do app) e outro agendado para 10 segundos
+  // (mostra se o alarme dispara). Devolve também um diagnóstico curto, para achar o problema quando algo falha.
   function testar() {
     if (!LN) return Promise.resolve({ ok: false, motivo: "navegador" });
     return permitir().then(function (sim) {
       if (!sim) return { ok: false, motivo: "negado" };
       return criarCanal().then(function () {
+        return LN.schedule({ notifications: [aviso(ID_TESTE - 1, "Aviso de teste: este chega na hora.")] });
+      }).then(function () {
         return LN.schedule({ notifications: [
-          aviso(ID_TESTE, "Assim chega o seu lembrete diário.", { at: new Date(Date.now() + 5000), allowWhileIdle: true })
+          aviso(ID_TESTE, "Aviso de teste: este foi agendado para 10 segundos.", { at: new Date(Date.now() + 10000), allowWhileIdle: true })
         ] });
-      }).then(function () { return { ok: true }; }, function () { return { ok: false, motivo: "erro" }; });
+      }).then(function () {
+        return diagnostico().then(function (d) { return { ok: true, diag: d }; });
+      }, function (e) {
+        return diagnostico().then(function (d) { return { ok: false, motivo: "erro", diag: (e && e.message || "") + " · " + d }; });
+      });
     });
+  }
+  function diagnostico() {
+    function ou(p, f) { return p ? p.then(f, function (e) { return "erro " + (e && e.message || ""); }) : Promise.resolve("?"); }
+    return Promise.all([
+      ou(LN.areEnabled && LN.areEnabled(), function (r) { return "ativas " + r.value; }),
+      ou(LN.listChannels && LN.listChannels(), function (r) {
+        return "canais " + (r.channels || []).map(function (c) { return c.id + ":" + c.importance; }).join(",");
+      }),
+      ou(LN.getPending && LN.getPending(), function (r) {
+        return "pendentes " + (r.notifications || []).map(function (n) { return n.id; }).join(",");
+      }),
+      ou(LN.checkExactNotificationSetting && LN.checkExactNotificationSetting(), function (r) { return "exato " + r.exact_alarm; })
+    ]).then(function (l) { return l.join(" · "); });
   }
   // chamado depois da primeira carta raspada: pede a permissão uma vez e agenda o lembrete que já vem ligado
   function primeiraCarta() {
