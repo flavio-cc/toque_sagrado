@@ -68,8 +68,9 @@
     var passos = [];
     if (AdMob) {
       passos.push(
-        // aviso de rastreamento da Apple e formulário de consentimento (quando a lei exige), antes de iniciar os anúncios
-        (plataforma === "ios" && AdMob.requestTrackingAuthorization ? AdMob.requestTrackingAuthorization().catch(function () {}) : Promise.resolve())
+        // formulário de consentimento (quando a lei exige) antes de iniciar os anúncios;
+        // o aviso de rastreamento da Apple só aparece quando a pessoa escolhe assistir ao primeiro anúncio
+        Promise.resolve()
           .then(function () { return AdMob.requestConsentInfo ? AdMob.requestConsentInfo() : null; })
           .then(function (c) { if (c && c.isConsentFormAvailable && c.status === "REQUIRED") return AdMob.showConsentForm(); })
           .catch(function () {})
@@ -98,8 +99,16 @@
 
   // ---------- anúncio premiado ----------
   // Resolve true só se a pessoa assistiu até o fim e ganhou a carta.
+  // A Apple pede o aviso de rastreamento perto do anúncio, não ao abrir o app. O sistema só mostra uma vez.
+  function pedirRastreamento() {
+    if (plataforma !== "ios" || !AdMob.requestTrackingAuthorization) return Promise.resolve();
+    return AdMob.requestTrackingAuthorization().catch(function () {});
+  }
   function assistirAnuncio() {
     if (!nativo || !AdMob) return anuncioSimulado();
+    return pedirRastreamento().then(function () { return mostrarAnuncio(); });
+  }
+  function mostrarAnuncio() {
     return new Promise(function (ok) {
       var ganhou = false, ouvintes = [];
       function fim(r) {

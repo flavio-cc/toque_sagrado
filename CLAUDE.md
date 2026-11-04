@@ -148,8 +148,13 @@ Cada carta em `window.VERSES`:
 - `app/www/`, `node_modules/` e as cópias geradas dentro de `android/` e `ios/` não vão para o git.
 - GitHub Actions a cada push em `main` que mexa em `web/` ou `app/`:
   - `android.yml`: gera o APK de teste (artefato `toque-sagrado-android-teste`).
-  - `ios.yml`: compila para o simulador sem assinatura. Assinar e enviar ao TestFlight depende da conta
-    Apple Developer e de segredos do repositório (certificado, perfil, chave da API), ainda não configurados.
+  - `ios.yml`: o job `simulador` compila sem assinatura; o job `testflight` assina na nuvem (assinatura automática
+    pela chave da API, sem certificado no repositório) e envia ao TestFlight. Precisa dos segredos `APPSTORE_KEY_ID`,
+    `APPSTORE_ISSUER_ID`, `APPSTORE_PRIVATE_KEY` (conteúdo do `.p8`, chave com acesso Admin) e do `TEAM_ID` no topo do
+    arquivo; sem eles o job só avisa e pula. Versão = `web/versao.js`; build = número da execução.
+  - iOS: só iPhone (`TARGETED_DEVICE_FAMILY = 1`), só em pé, `ITSAppUsesNonExemptEncryption = false`. O aviso de
+    rastreamento da Apple aparece só antes do primeiro anúncio (`pedirRastreamento()` em `loja.js`), não ao abrir.
+    O Flavio não tem iPhone nem Mac: testes no simulador da nuvem e num iPhone emprestado pelo TestFlight.
 
 ## Regras de trabalho
 
