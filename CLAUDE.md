@@ -125,7 +125,7 @@ Cada carta em `window.VERSES`:
   (`NOMES` em `loja.js`: Anual, Vitalício, Mensal) em vez do título da Play, que vem com "(nome do app)" no fim;
   os dias grátis vêm da loja (`diasGratis()`: `defaultOption.freePhase` ou `introPrice` com preço 0).
 - `MODO_TESTE = true` em `app.js` libera cartas ilimitadas para testar. Deixe `false` em produção.
-- `loja.js` usa os IDs de **teste** do Google AdMob e chaves vazias do RevenueCat até as contas existirem.
+- `loja.js` usa os IDs reais do AdMob (Android e iOS) e a chave Android do RevenueCat. Sem a chave iOS (`appl_...`), o Premium fica escondido no iPhone.
   O que trocar antes de publicar está em `app/LEIA-ME.md`.
 - Anúncio premiado (`assistirAnuncio()` em `loja.js`): espera o `AdMob.initialize` (até 8 s), desiste se o vídeo não abrir
   em 25 s ou se vier `onRewardedVideoAdFailedToLoad`/`FailedToShow`, e então rejeita; o `app.js` tira o carregando e

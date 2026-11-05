@@ -3,14 +3,14 @@
 (function () {
   "use strict";
 
-  // Preencher quando as contas existirem. Os anúncios usam os IDs de teste do Google até lá.
+  // IDs públicos das contas. Falta a chave iOS do RevenueCat (appl_...).
   var CONFIG = {
     revenuecat: { ios: "", android: "goog_YxOLXwlgaTenLSJEUsNGWYuciZE" },  // chaves públicas do projeto no RevenueCat (appl_..., goog_...)
     admob: {
-      ios: "ca-app-pub-3940256099942544/1712485313",     // anúncio premiado de teste (Google)
-      android: "ca-app-pub-3940256099942544/5224354917"  // anúncio premiado de teste (Google)
+      ios: "ca-app-pub-4222726497664516/2862928403",     // bloco premiado "Carta extra" (iOS)
+      android: "ca-app-pub-4222726497664516/8433598094"  // bloco premiado "Carta extra" (Android)
     },
-    anunciosDeTeste: true,                         // false só quando os IDs reais estiverem acima
+    anunciosDeTeste: false,                        // true volta aos modos de teste do AdMob e mostra diagnósticos
     direito: "premium",                            // entitlement no RevenueCat
     pacotesPremium: "default",                     // offering com anual, vitalício e mensal
     pacotesOferta: "ofertas"                       // offering com as três ofertas (consumíveis)
