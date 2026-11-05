@@ -4,7 +4,7 @@
 <dict>
 	<!-- AdMob: ID de teste do Google; trocar pelo ID do app no AdMob antes de publicar -->
 	<key>GADApplicationIdentifier</key>
-	<string>ca-app-pub-3940256099942544~1458002511</string>
+	<string>ca-app-pub-4222726497664516~8031494602</string>
 	<key>NSUserTrackingUsageDescription</key>
 	<string>Usamos isso só para mostrar anúncios mais relevantes quando você escolhe assistir a um para ganhar uma carta.</string>
 	<key>SKAdNetworkItems</key>
