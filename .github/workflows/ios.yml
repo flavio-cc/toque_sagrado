@@ -13,7 +13,7 @@ on:
   workflow_dispatch:
 
 env:
-  TEAM_ID: ""   # Team ID da conta Apple Developer (Membership details); não é segredo
+  TEAM_ID: "8BMT2F6K68" # Team ID da conta Apple Developer (Membership details); não é segredo
 
 jobs:
   simulador:
