@@ -1,0 +1,27 @@
+# Preenche a página do app no App Store Connect (preço, textos, prints, build) pela API.
+# Roda quando app-store/ muda no main, ou na mão (Run workflow). Não envia para revisão.
+# Usa os mesmos segredos do ios.yml; o telefone do contato de revisão vem de APPSTORE_REVIEW_PHONE, se existir.
+name: Página da App Store
+
+on:
+  push:
+    branches: [main]
+    paths: ["app-store/**", ".github/workflows/app-store-pagina.yml"]
+  workflow_dispatch:
+
+jobs:
+  preencher:
+    runs-on: ubuntu-latest
+    env:
+      KEY_ID: ${{ secrets.APPSTORE_KEY_ID }}
+      ISSUER_ID: ${{ secrets.APPSTORE_ISSUER_ID }}
+      PRIVATE_KEY: ${{ secrets.APPSTORE_PRIVATE_KEY }}
+      REVIEW_PHONE: ${{ secrets.APPSTORE_REVIEW_PHONE }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install "pyjwt[crypto]" requests
+      - name: Preencher pela API
+        run: python3 app-store/preencher.py

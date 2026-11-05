@@ -1,0 +1,18 @@
+{
+  "idioma": "pt-BR",
+  "nome": "Toque Sagrado: Versículos",
+  "subtitulo": "Salmos e Provérbios do dia",
+  "palavras_chave": "salmos,provérbios,bíblia,versículo,devocional,oração,fé,cristão,palavra,deus,diário,frases",
+  "texto_promocional": "Toque a carta, revele um versículo de Salmos ou Provérbios sobre uma pintura e compartilhe com quem você ama. Uma carta nova todos os dias, grátis.",
+  "descricao": "Um versículo para o seu dia, revelado com o toque do seu dedo.\n\nNo Toque Sagrado, cada dia traz uma carta nova. Passe o dedo sobre ela e descubra uma palavra de Salmos ou Provérbios, sobre uma pintura feita para aquele tema: paz, esperança, força, proteção, consolo, sabedoria, gratidão e louvor.\n\nO que você pode fazer:\n\n• Receber a carta do dia, igual para todos que usam o app naquele dia.\n• Pedir outras cartas escolhendo como você está: ansioso, cansado, grato, precisando de força.\n• Ouvir cada versículo narrado com calma.\n• Ler o capítulo inteiro de onde o versículo veio.\n• Guardar e favoritar suas cartas na Coleção.\n• Receber um lembrete diário no horário que você escolher.\n• Compartilhar a imagem no WhatsApp, no Instagram (feed ou story) e onde quiser.\n\nCom o tempo, o app aprende os temas que mais tocam você e escolhe cartas mais próximas do seu momento.\n\nO versículo é sempre grátis. Não há cadastro e suas cartas ficam só no seu celular.\n\nTexto bíblico: Bíblia Livre, licença CC BY 3.0 BR.",
+  "url_suporte": "https://flavio-cc.github.io/toque_sagrado/suporte.html",
+  "url_privacidade": "https://flavio-cc.github.io/toque_sagrado/privacidade.html",
+  "copyright": "2026 Flavio Cordeiro",
+  "categoria_principal": "LIFESTYLE",
+  "categoria_secundaria": "BOOKS",
+  "contato_nome": "Flavio",
+  "contato_sobrenome": "Cordeiro",
+  "contato_email": "app@toquesagrado.com",
+  "nota_revisao": "App devocional grátis. A pessoa toca a carta para revelar um versículo bíblico (Bíblia Livre, CC BY 3.0 BR). Não há aposta, prêmio nem sorteio. O anúncio premiado só aparece quando a pessoa escolhe assistir para ganhar uma carta extra. Não há login nem conta. / Free devotional app: the user taps a card to reveal a Bible verse. No gambling, prizes or sweepstakes. A rewarded ad is shown only when the user chooses to watch it for an extra card. No login.",
+  "prints": ["1-hoje.png", "2-revelado.png", "3-leitura.png", "4-colecao.png"]
+}
