@@ -240,6 +240,62 @@ def build():
 direitos(); preco(); disponibilidade(); categorias(); info_textos(); versao()
 if V.get("id"):
     textos_versao(); prints(); revisao(); build()
+B = {}
+
+
+@passo("TestFlight: descrição do teste e e-mail para comentários")
+def beta_textos():
+    locs = chamar("GET", "/v1/apps/%s/betaAppLocalizations" % APP)["data"]
+    atr = {"description": T["beta_descricao"], "feedbackEmail": T["beta_email"]}
+    loc = next((l for l in locs if l["attributes"]["locale"] == T["idioma"]), None)
+    if loc:
+        chamar("PATCH", "/v1/betaAppLocalizations/" + loc["id"], {"data": {"type": "betaAppLocalizations", "id": loc["id"], "attributes": atr}})
+    else:
+        atr["locale"] = T["idioma"]
+        chamar("POST", "/v1/betaAppLocalizations", {"data": {"type": "betaAppLocalizations", "attributes": atr,
+               "relationships": {"app": {"data": {"type": "apps", "id": APP}}}}})
+
+
+@passo("TestFlight: o que testar neste build")
+def beta_build():
+    bs = chamar("GET", "/v1/builds?filter[app]=%s&filter[preReleaseVersion.version]=%s&filter[processingState]=VALID&sort=-uploadedDate&limit=1" % (APP, VERSAO))["data"]
+    if not bs:
+        raise RuntimeError("nenhum build %s pronto" % VERSAO)
+    B["id"] = bs[0]["id"]
+    locs = chamar("GET", "/v1/builds/%s/betaBuildLocalizations" % B["id"])["data"]
+    loc = next((l for l in locs if l["attributes"]["locale"] == T["idioma"]), None)
+    if loc:
+        chamar("PATCH", "/v1/betaBuildLocalizations/" + loc["id"], {"data": {"type": "betaBuildLocalizations", "id": loc["id"], "attributes": {"whatsNew": T["beta_novidades"]}}})
+    else:
+        chamar("POST", "/v1/betaBuildLocalizations", {"data": {"type": "betaBuildLocalizations",
+               "attributes": {"locale": T["idioma"], "whatsNew": T["beta_novidades"]},
+               "relationships": {"build": {"data": {"type": "builds", "id": B["id"]}}}}})
+
+
+@passo("TestFlight: build nos grupos externos")
+def beta_grupos():
+    grupos = [g for g in chamar("GET", "/v1/apps/%s/betaGroups" % APP)["data"] if not g["attributes"].get("isInternalGroup")]
+    if not grupos:
+        raise RuntimeError("não há grupo externo; crie um em TestFlight > Testes externos")
+    for g in grupos:
+        chamar("POST", "/v1/betaGroups/%s/relationships/builds" % g["id"], {"data": [{"type": "builds", "id": B["id"]}]})
+        print("     grupo:", g["attributes"]["name"])
+
+
+@passo("TestFlight: enviar o build para a revisão beta")
+def beta_revisao():
+    subs = chamar("GET", "/v1/betaAppReviewSubmissions?filter[build]=" + B["id"])["data"]
+    if subs:
+        print("     já enviado:", subs[0]["attributes"].get("betaReviewState"))
+        return
+    chamar("POST", "/v1/betaAppReviewSubmissions", {"data": {"type": "betaAppReviewSubmissions",
+           "relationships": {"build": {"data": {"type": "builds", "id": B["id"]}}}}})
+
+
+beta_textos(); beta_build()
+if B.get("id"):
+    beta_grupos(); beta_revisao()
+
 print()
 print("Faltou: " + ", ".join(falhas) if falhas else "Tudo preenchido. Falta no site: telefone do contato (se não houver o segredo), classificação etária e Enviar para revisão.")
 sys.exit(1 if falhas else 0)

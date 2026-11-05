@@ -14,5 +14,13 @@
   "contato_sobrenome": "Cordeiro",
   "contato_email": "app@toquesagrado.com",
   "nota_revisao": "App devocional grátis. A pessoa toca a carta para revelar um versículo bíblico (Bíblia Livre, CC BY 3.0 BR). Não há aposta, prêmio nem sorteio. O anúncio premiado só aparece quando a pessoa escolhe assistir para ganhar uma carta extra. Não há login nem conta. / Free devotional app: the user taps a card to reveal a Bible verse. No gambling, prizes or sweepstakes. A rewarded ad is shown only when the user chooses to watch it for an extra card. No login.",
-  "prints": ["1-hoje.png", "2-revelado.png", "3-leitura.png", "4-colecao.png"]
+  "prints": [
+    "1-hoje.png",
+    "2-revelado.png",
+    "3-leitura.png",
+    "4-colecao.png"
+  ],
+  "beta_descricao": "Toque Sagrado é um app devocional: toque a carta do dia para revelar um versículo de Salmos ou Provérbios sobre uma pintura. O que testar: raspar a carta, ouvir a narração, ler o capítulo, guardar e favoritar na Coleção, pedir outras cartas pelo humor, compartilhar a imagem (feed e story), o lembrete diário e o vídeo para ganhar uma carta extra. Conte o que travou, demorou ou ficou estranho.",
+  "beta_novidades": "Primeira versão de teste. Confira principalmente a raspagem, a narração, o compartilhar e o lembrete diário.",
+  "beta_email": "app@toquesagrado.com"
 }
