@@ -37,6 +37,9 @@
   var Purchases = nativo && Cap.Plugins.Purchases;
   // Sem chave do RevenueCat (APK de teste), as compras são simuladas como no navegador.
   var simulada = !Purchases || !CONFIG.revenuecat[plataforma];
+  // No app das lojas sem chave do RevenueCat, o Premium fica escondido (versão 1 grátis, só com anúncios).
+  // A loja da Apple recusa compra simulada. No navegador a simulação continua para testar.
+  var vendas = !nativo || !simulada;
   var CHAVE = "toque-premium";
   var premium = false;
   try { premium = localStorage.getItem(CHAVE) === "1"; } catch (e) { /* sem armazenamento */ }
@@ -175,6 +178,7 @@
     nativo: nativo,
     plataforma: plataforma,
     simulada: simulada,
+    vendas: vendas,
     iniciar: iniciar,
     premium: function () { return premium; },
     aoMudar: function (f) { aoMudar.push(f); },

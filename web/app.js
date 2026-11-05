@@ -155,7 +155,7 @@
       : window.LOJA.premium() ? "Ilimitadas com o Premium"
       : MODO_TESTE ? "Ilimitadas (modo de teste)"
       : gratis + (gratis === 1 ? " carta grátis hoje" : " cartas grátis hoje");
-    $("link-premium").hidden = ilimitado() || gratis > 0;
+    $("link-premium").hidden = ilimitado() || gratis > 0 || !window.LOJA.vendas;
   }
 
   // ---------- raspar ----------
@@ -594,7 +594,7 @@
     location.reload();
   }
   // no link de teste (navegador) o botão aparece sempre; no app das lojas, só no modo de teste
-  if (MODO_TESTE || window.LOJA.simulada) {
+  if (MODO_TESTE || !window.LOJA.nativo) {
     var br = $("btn-recomecar"), armado = null;
     br.hidden = false;
     br.onclick = function () {
@@ -605,7 +605,10 @@
   }
 
   // ---------- início ----------
-  $("versao").textContent = "Versão " + (window.VERSAO || "?");
+  $("versao").textContent = $("versao-colecao").textContent = "Versão " + (window.VERSAO || "?");
+  // sem vendas (versão 1 das lojas): sem botão do Premium, e a versão aparece na Coleção
+  $("btn-premium").hidden = !window.LOJA.vendas;
+  $("versao-colecao").hidden = window.LOJA.vendas;
   var lojaPronta = false;
   window.LOJA.iniciar().then(function () {
     lojaPronta = true;
