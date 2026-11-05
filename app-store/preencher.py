@@ -72,6 +72,9 @@ def direitos():
 
 @passo("Preço grátis")
 def preco():
+    if chamar("GET", "/v1/apps/%s/appPriceSchedule" % APP, ok404=True):
+        print("     (já estava configurado)")
+        return
     pontos = todos("/v1/apps/%s/appPricePoints?filter[territory]=USA&limit=200" % APP)
     zero = [p for p in pontos if float(p["attributes"]["customerPrice"]) == 0]
     chamar("POST", "/v1/appPriceSchedules", {
@@ -103,6 +106,26 @@ def info_editavel():
         if i["attributes"].get("state", i["attributes"].get("appStoreState")) not in ("READY_FOR_DISTRIBUTION", "READY_FOR_SALE"):
             return i
     return infos[0]
+
+
+@passo("Classificação etária (nada sensível; contém anúncios)")
+def classificacao():
+    i = info_editavel()
+    d = chamar("GET", "/v1/appInfos/%s/ageRatingDeclaration" % i["id"])["data"]
+    print("     antes:", json.dumps(d["attributes"], ensure_ascii=False))
+    sim = {"advertising"}  # o app mostra anúncio premiado
+    booleanos = {"advertising", "ageAssurance", "gambling", "healthOrWellnessTopics", "lootBox", "messagingAndChat",
+                 "parentalControls", "unrestrictedWebAccess", "userGeneratedContent", "seventeenPlus"}
+    pular = ("Override", "kidsAgeBand", "Url", "ageRating")
+    atr = {}
+    for k, v in d["attributes"].items():
+        if any(p in k for p in pular):
+            continue
+        if k in booleanos or isinstance(v, bool):
+            atr[k] = k in sim
+        else:
+            atr[k] = "NONE"
+    chamar("PATCH", "/v1/ageRatingDeclarations/" + d["id"], {"data": {"type": "ageRatingDeclarations", "id": d["id"], "attributes": atr}})
 
 
 @passo("Categorias")
@@ -237,7 +260,7 @@ def build():
     chamar("PATCH", "/v1/appStoreVersions/%s/relationships/build" % V["id"], {"data": {"type": "builds", "id": b["id"]}})
 
 
-direitos(); preco(); disponibilidade(); categorias(); info_textos(); versao()
+direitos(); classificacao(); preco(); disponibilidade(); categorias(); info_textos(); versao()
 if V.get("id"):
     textos_versao(); prints(); revisao(); build()
 B = {}
