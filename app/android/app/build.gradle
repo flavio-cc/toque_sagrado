@@ -14,14 +14,30 @@ android {
         versionCode partesVersao[0] * 10000 + partesVersao[1] * 100 + partesVersao[2]
         versionName versaoApp
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        // ID do app no AdMob: vem da variável ADMOB_APP_ID (segredo do GitHub); sem ela, usa o ID de teste do Google
+        manifestPlaceholders = [admobAppId: System.getenv("ADMOB_APP_ID") ?: "ca-app-pub-3940256099942544~3347511713"]
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
              // Default: https://android.googlesource.com/platform/frameworks/base/+/282e181b58cf72b6ca770dc7ca5f91f135444502/tools/aapt/AaptAssets.cpp#61
             ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
+    // Chave de envio (upload key) da Google Play. Nunca vai para o repositório: o workflow android-play.yml
+    // recria o arquivo a partir dos segredos ANDROID_KEYSTORE_BASE64, ANDROID_KEYSTORE_SENHA, ANDROID_KEY_ALIAS e ANDROID_KEY_SENHA.
+    def keystoreArquivo = System.getenv("ANDROID_KEYSTORE_ARQUIVO")
+    signingConfigs {
+        if (keystoreArquivo) {
+            release {
+                storeFile file(keystoreArquivo)
+                storePassword System.getenv("ANDROID_KEYSTORE_SENHA")
+                keyAlias System.getenv("ANDROID_KEY_ALIAS")
+                keyPassword System.getenv("ANDROID_KEY_SENHA")
+            }
+        }
+    }
     buildTypes {
         release {
+            if (keystoreArquivo) signingConfig signingConfigs.release
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }

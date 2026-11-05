@@ -1,5 +1,7 @@
 # Toque Sagrado para as lojas (Capacitor)
 
+Passo a passo completo da Google Play (contas, chave, produtos, testes): `docs/PUBLICAR-GOOGLE-PLAY.md`.
+
 Este projeto empacota a web app da pasta `web/` deste repositório como app de iPhone e Android.
 O código do app continua todo em `web/`; aqui ficam só a configuração e os projetos nativos.
 
@@ -17,7 +19,7 @@ Precisa de Node 20+, Android Studio (para Android) e um Mac com Xcode (para iPho
 | Onde | O que trocar |
 | --- | --- |
 | `web/loja.js` (CONFIG) | chaves públicas do RevenueCat (iOS e Android), IDs do anúncio premiado do AdMob, `anunciosDeTeste: false` |
-| `android/app/src/main/AndroidManifest.xml` | `APPLICATION_ID` do AdMob (app Android) |
+| Segredo `ADMOB_APP_ID` no GitHub | ID do app Android no AdMob (o `build.gradle` coloca no manifesto; sem ele, ID de teste) |
 | `ios/App/App/Info.plist` | `GADApplicationIdentifier` do AdMob (app iOS) e a lista completa de SKAdNetwork do Google |
 
 ## Produtos para cadastrar (App Store Connect, Google Play e RevenueCat)

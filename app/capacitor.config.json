@@ -4,5 +4,8 @@
   "webDir": "www",
   "backgroundColor": "#efe5cf",
   "android": { "allowMixedContent": false },
-  "ios": { "contentInset": "never" }
+  "ios": { "contentInset": "never" },
+  "plugins": {
+    "LocalNotifications": { "smallIcon": "ic_stat_lembrete", "iconColor": "#a97c22" }
+  }
 }

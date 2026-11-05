@@ -286,6 +286,8 @@
     if (ehDiaria && !estado.dia.diaria) { estado.dia.diaria = true; salvar(); }
     contarDia();
     if (navigator.vibrate) navigator.vibrate(30);
+    // o lembrete vem ligado às 07:00; a permissão de notificação é pedida uma vez, depois da primeira carta
+    setTimeout(function () { window.LEMBRETE.primeiraCarta().then(atualizarLembrete); }, 1500);
   }
 
   function atualizarBotoes() {
@@ -499,12 +501,17 @@
     // o anúncio só passa quando a pessoa escolhe, e a carta só vem se ela assistir até o fim
     $("btn-carta-extra").disabled = true;
     // no app o anúncio leva uns segundos para carregar; no navegador a simulação já tem a própria tela
-    if (window.LOJA.nativo) carregando(true, 60000);
+    if (window.LOJA.nativo) carregando(true, 40000);
     window.LOJA.assistirAnuncio().then(function (ganhou) {
       carregando(false);
       if (ganhou) { estado.dia.anuncios = (estado.dia.anuncios || 0) + 1; salvar(); abrirExtra(); }
       atualizarExtra();
-    }, function () { carregando(false); atualizarExtra(); });
+    }, function (e) {
+      carregando(false); atualizarExtra();
+      // com os anúncios de teste, mostra o motivo para achar o problema
+      $("sub-extra").textContent = "O vídeo não carregou. Tente de novo em instantes." +
+        (window.LOJA.anunciosDeTeste && e && e.message ? " (" + e.message + ")" : "");
+    });
   };
   $("link-premium").onclick = abrirPremium;
   $("btn-premium").onclick = abrirPremium;
@@ -587,10 +594,55 @@
   $("simular-sem-premium").onclick = function () { window.LOJA.simularPremium(false); montarPremium(); };
   window.LOJA.aoMudar(function () { atualizarExtra(); if (!$("premium").hidden) montarPremium(); });
 
+  // ---------- lembrete diário ----------
+  function atualizarLembrete() {
+    var L = window.LEMBRETE, ligado = L.ativo();
+    $("sub-lembrete").textContent = ligado ? "Todo dia às " + L.hora() : "Desligado";
+    $("lembrete-ligar").textContent = ligado ? "Salvar horário" : "Ligar lembrete";
+    $("lembrete-desligar").hidden = !ligado;
+  }
+  $("btn-lembrete").onclick = function () {
+    $("lembrete-hora").value = window.LEMBRETE.hora();
+    $("lembrete-aviso").textContent = window.LEMBRETE.nativo ? "" : "No navegador a escolha fica guardada, mas o aviso só toca no app instalado.";
+    atualizarLembrete();
+    $("lembrete").hidden = false;
+  };
+  $("lembrete-ligar").onclick = function () {
+    $("lembrete-ligar").disabled = true;
+    window.LEMBRETE.ligar($("lembrete-hora").value).then(function (r) {
+      $("lembrete-ligar").disabled = false;
+      $("lembrete-aviso").textContent = r.ok ? "Pronto: o aviso vem todo dia às " + window.LEMBRETE.hora() + "."
+        : r.motivo === "negado" ? "O celular não permitiu notificações. Libere em Configurações > Apps > Toque Sagrado > Notificações."
+        : "Não foi possível agendar agora. Tente de novo.";
+      atualizarLembrete();
+    });
+  };
+  $("lembrete-desligar").onclick = function () {
+    window.LEMBRETE.desligar().then(function () {
+      $("lembrete-aviso").textContent = "Lembrete desligado.";
+      atualizarLembrete();
+    });
+  };
+  $("lembrete-testar").onclick = function () {
+    $("lembrete-testar").disabled = true;
+    window.LEMBRETE.testar().then(function (r) {
+      $("lembrete-testar").disabled = false;
+      $("lembrete-aviso").textContent = (r.ok ? "Enviamos dois avisos de teste: um agora e outro daqui a 10 segundos."
+        : r.motivo === "navegador" ? "O aviso de teste só funciona no app instalado."
+        : r.motivo === "negado" ? "O celular não permitiu notificações. Libere em Configurações > Apps > Toque Sagrado > Notificações."
+        : "Não foi possível enviar o teste agora. Tente de novo.") +
+        // enquanto o app está em teste (anúncios de teste), mostra o diagnóstico para achar problemas
+        (window.LOJA.anunciosDeTeste && r.diag ? " [" + r.diag + "]" : "");
+      atualizarLembrete();
+    });
+  };
+  $("fechar-lembrete").onclick = function () { $("lembrete").hidden = true; };
+  atualizarLembrete();
+
   // ---------- recomeçar (só no modo de teste) ----------
   // Apaga coleção, sequência, humor e preferências; pede um segundo toque para confirmar.
   function recomecar() {
-    try { localStorage.removeItem(CHAVE); localStorage.removeItem("toque-premium"); } catch (e) { /* sem armazenamento */ }
+    try { localStorage.removeItem(CHAVE); localStorage.removeItem("toque-premium"); localStorage.removeItem("toque-lembrete"); } catch (e) { /* sem armazenamento */ }
     location.reload();
   }
   // no link de teste (navegador) o botão aparece sempre; no app das lojas, só no modo de teste

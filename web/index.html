@@ -72,6 +72,7 @@
       <h2>Minha coleção</h2>
     </div>
     <div id="lista" class="lista"></div>
+    <button id="btn-lembrete" class="botao-extra"><strong>Lembrete diário</strong><small id="sub-lembrete">Todo dia às 07:00</small></button>
     <button id="btn-premium" class="botao-extra botao-premium"><strong>Premium e ofertas</strong><small>Cartas ilimitadas, sem anúncios, apoie o app</small></button>
     <p class="credito">Texto bíblico: Bíblia Livre, licença CC BY 3.0 BR.</p>
     <p id="versao-colecao" class="versao" hidden></p>
@@ -117,9 +118,23 @@
       <button id="restaurar" class="link">Restaurar compras</button>
       <a id="gerenciar" class="link" target="_blank" rel="noopener" hidden>Gerenciar assinatura</a>
       <button id="simular-sem-premium" class="link" hidden>Teste: tirar o Premium</button>
+      <a class="link" href="https://flavio-cc.github.io/toque_sagrado/privacidade.html" target="_blank" rel="noopener">Política de privacidade</a>
       <button id="fechar-premium" class="link">Fechar</button>
     </div>
     <p id="versao" class="versao"></p>
+  </div>
+</div>
+<div id="lembrete" class="sobre" hidden>
+  <div class="sobre-caixa formato">
+    <p class="formato-titulo">Lembrete diário</p>
+    <p class="premium-nota">Um aviso por dia para não perder a sua carta. Ele é agendado no próprio celular e funciona sem internet.</p>
+    <label class="lembrete-rotulo" for="lembrete-hora">Horário</label>
+    <input id="lembrete-hora" class="lembrete-hora" type="time" value="07:00">
+    <button id="lembrete-ligar" class="lembrete-botao">Ligar lembrete</button>
+    <p id="lembrete-aviso" class="premium-aviso" aria-live="polite"></p>
+    <button id="lembrete-testar" class="link">Testar aviso agora</button>
+    <button id="lembrete-desligar" class="link" hidden>Desligar lembrete</button>
+    <button id="fechar-lembrete" class="link">Fechar</button>
   </div>
 </div>
 <div id="formato" class="sobre" hidden>
@@ -145,6 +160,7 @@
 <script src="verses.js"></script>
 <script src="cena.js"></script>
 <script src="loja.js"></script>
+<script src="lembrete.js"></script>
 <script src="versao.js"></script>
 <script src="app.js"></script>
 </body>

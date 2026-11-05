@@ -26,19 +26,21 @@ ouvir a narração, ler o capítulo inteiro e compartilhar a imagem nas redes.
 | `web/ferramentas/` | Scripts Python: gerar a base, narrar, montar o arquivo único de teste |
 | `web/logo-opcoes/` | Originais do logo (desenho a lápis do Flavio) e versões tratadas |
 | `app/` | Projeto Capacitor 8 que empacota `web/` como app de iPhone e Android |
-| `.github/workflows/` | GitHub Actions: APK de teste do Android e compilação do iOS |
+| `.github/workflows/` | GitHub Actions: APK de teste do Android, AAB da Google Play e compilação do iOS |
+| `docs/` | Política de privacidade (GitHub Pages: flavio-cc.github.io/toque_sagrado/privacidade.html) e o passo a passo da Google Play |
 
 ### Arquivos de `web/`
 
 | Arquivo | Papel |
 | --- | --- |
-| `index.html` | Telas e folhas (sheets). Ordem dos scripts importa: `verses.js`, `cena.js`, `loja.js`, `app.js` (o `biblia.js` é carregado sob demanda pelo leitor) |
+| `index.html` | Telas e folhas (sheets). Ordem dos scripts importa: `verses.js`, `cena.js`, `loja.js`, `lembrete.js`, `app.js` (o `biblia.js` é carregado sob demanda pelo leitor) |
 | `style.css` | Visual "papel e lápis": fundo de papel, dourado, fonte EB Garamond na interface |
 | `app.js` | Toda a lógica: estado, escolha do versículo, raspagem, botões, coleção, leitor, compartilhar, limites diários, Premium |
 | `cena.js` | Desenha a imagem de cada carta (foto do tema + texto; cenas procedurais em canvas só se a foto falhar) e gera a imagem de compartilhar. Expõe `window.CENA` |
 | `verses.js` | **Gerado.** `window.VERSES` (331 cartas), `window.POP` (popularidade), `window.TEMAS`, `window.HUMORES` |
 | `biblia.js` | **Gerado.** `window.BIBLIA`: Salmos e Provérbios completos, para o leitor de capítulo |
 | `loja.js` | Anúncio premiado (AdMob) e compras (RevenueCat) via Capacitor; no navegador tudo é simulado. Expõe `window.LOJA` |
+| `lembrete.js` | Lembrete diário: notificação local agendada no celular (sem servidor nem internet), um aviso por dia, ligado às 07:00. Expõe `window.LEMBRETE` |
 | `versao.js` | **Versão do app** (`self.VERSAO`, ex. `1.0.37`). Aparece no rodapé do Premium e alimenta o cache do `sw.js` e a versão do APK |
 | `sw.js` | Service worker com cache offline. O nome do cache vem de `versao.js`. As fotos entram no cache conforme aparecem |
 | `manifest.json`, `icon*`, `apple-touch-icon.png` | PWA e ícones |
@@ -119,13 +121,35 @@ Cada carta em `window.VERSES`:
 - Grátis: a carta do dia + 3 extras por dia (`LIMITE_EXTRAS`) + até 3 por anúncio premiado (`LIMITE_ANUNCIOS`).
 - Premium: cartas ilimitadas e sem anúncios. Produtos: `premium_anual` (7 dias grátis), `premium_mensal`,
   `premium_vitalicio`; ofertas consumíveis `oferta_pequena`, `oferta_media`, `oferta_grande`.
-  RevenueCat: entitlement `premium`, offerings `default` e `ofertas`.
+  RevenueCat: entitlement `premium`, offerings `default` e `ofertas`. A tela do Premium usa nomes curtos nossos
+  (`NOMES` em `loja.js`: Anual, Vitalício, Mensal) em vez do título da Play, que vem com "(nome do app)" no fim;
+  os dias grátis vêm da loja (`diasGratis()`: `defaultOption.freePhase` ou `introPrice` com preço 0).
 - `MODO_TESTE = true` em `app.js` libera cartas ilimitadas para testar. Deixe `false` em produção.
 - `loja.js` usa os IDs de **teste** do Google AdMob e chaves vazias do RevenueCat até as contas existirem.
   O que trocar antes de publicar está em `app/LEIA-ME.md`.
+- Anúncio premiado (`assistirAnuncio()` em `loja.js`): espera o `AdMob.initialize` (até 8 s), desiste se o vídeo não abrir
+  em 25 s ou se vier `onRewardedVideoAdFailedToLoad`/`FailedToShow`, e então rejeita; o `app.js` tira o carregando e
+  escreve "O vídeo não carregou" no botão (com o motivo, enquanto `anunciosDeTeste` for `true`).
 - Princípios: o versículo nunca é pago; compartilhar é sempre grátis; anúncio só quando a pessoa escolhe assistir.
   Nos textos das lojas evite "raspadinha", "prêmio", "sorte" (soam como jogo de azar).
 - Narração de capítulos, temas visuais e widget estão planejados para depois.
+
+### Lembrete diário
+
+- Botão "Lembrete diário" na Coleção abre a folha `#lembrete` (horário, ligar, testar, desligar). Grátis para todos,
+  **vem ligado às 07:00** (pedido do Flavio); a escolha fica em `localStorage["toque-lembrete"]` (`ativo`, `hora`, `pedido`).
+- No app, `lembrete.js` usa `@capacitor/local-notifications`. A permissão de notificação (Android 13+) é pedida uma vez,
+  1,5 s depois da primeira carta raspada (`LEMBRETE.primeiraCarta()` em `revelar()`); se a pessoa negar, o lembrete desliga.
+  Ao ligar pela folha, pede de novo. Ao abrir o app, reagenda sem pedir permissão.
+- Agenda **um** aviso diário (ID 7100, `schedule.on` com `hour`, `minute`, `second: 0`); o texto muda a cada reagendamento.
+  Cancela os IDs 7101–7107 da 1.0.40 (que eram um por dia da semana). "Testar aviso agora" manda o ID 7198 na hora e o 7199 em 10 segundos e,
+  enquanto `anunciosDeTeste` for `true`, mostra um diagnóstico (notificações ativas, canais, pendentes, alarme exato).
+- Alarme comum que acorda o celular: `isExactNotification: false` e `allowWhileIdle: true` (sem o `allowWhileIdle` o
+  Android segura o aviso até a tela acender: provável motivo de o aviso não aparecer na 1.0.40). Pode atrasar até 1 hora.
+  O `AndroidManifest.xml` remove a permissão `SCHEDULE_EXACT_ALARM` que o plugin declara. Canal `lembrete` com importância 4.
+  Ícone da barra: `res/drawable/ic_stat_lembrete.xml` (o sol da aba Hoje), cor dourada.
+- Os textos não revelam o versículo (para não estragar o raspar) e seguem a regra de evitar "prêmio", "sorte" e "raspadinha".
+- No navegador não toca: a escolha fica guardada e o painel avisa que o aviso só funciona no app.
 
 ## Como testar
 
@@ -140,14 +164,19 @@ Cada carta em `window.VERSES`:
 
 ## Apps das lojas (`app/`)
 
-- Capacitor 8.6, appId `com.toquesagrado.app`, plugins `@capacitor-community/admob`, `@capacitor/share`, `@capacitor/filesystem` (compartilhar a imagem no app) e
-  `@revenuecat/purchases-capacitor`, acessados em `loja.js` por `window.Capacitor.Plugins`.
+- Capacitor 8.6, appId `com.toquesagrado.app`, plugins `@capacitor-community/admob`, `@capacitor/share`, `@capacitor/filesystem` (compartilhar a imagem no app),
+  `@capacitor/local-notifications` (lembrete diário, em `lembrete.js`) e `@revenuecat/purchases-capacitor`, acessados
+  por `window.Capacitor.Plugins`.
 - `npm run sync` (dentro de `app/`) roda `ferramentas/copiar-web.sh`, que copia os arquivos de `web/` para
   `app/www/`, e depois `npx cap sync`. **Se criar um arquivo novo em `web/` que o app usa, inclua-o na lista do
   `copiar-web.sh`** (e na lista do `sw.js`).
 - `app/www/`, `node_modules/` e as cópias geradas dentro de `android/` e `ios/` não vão para o git.
 - GitHub Actions a cada push em `main` que mexa em `web/` ou `app/`:
   - `android.yml`: gera o APK de teste (artefato `toque-sagrado-android-teste`).
+  - `android-play.yml` (só na mão, Run workflow): AAB de release assinado com a chave de envio e, se houver o segredo
+    `PLAY_SERVICE_ACCOUNT_JSON`, envio à faixa escolhida da Play. A chave e o ID do app AdMob vêm de segredos do GitHub
+    (o `build.gradle` lê `ANDROID_KEYSTORE_*`, `ANDROID_KEY_*` e `ADMOB_APP_ID` do ambiente). Ele recusa montar se
+    `loja.js` ou `app.js` ainda estiverem em modo de teste. Passo a passo das contas em `docs/PUBLICAR-GOOGLE-PLAY.md`.
   - `ios.yml`: o job `simulador` compila sem assinatura; o job `testflight` assina na nuvem (assinatura automática
     pela chave da API, sem certificado no repositório) e envia ao TestFlight. Precisa dos segredos `APPSTORE_KEY_ID`,
     `APPSTORE_ISSUER_ID`, `APPSTORE_PRIVATE_KEY` (conteúdo do `.p8`, chave com acesso Admin) e do `TEAM_ID` no topo do
