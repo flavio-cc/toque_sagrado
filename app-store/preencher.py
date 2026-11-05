@@ -320,5 +320,5 @@ if B.get("id"):
     beta_grupos(); beta_revisao()
 
 print()
-print("Faltou: " + ", ".join(falhas) if falhas else "Tudo preenchido. Falta no site: telefone do contato (se não houver o segredo), classificação etária e Enviar para revisão.")
+print("Faltou: " + ", ".join(falhas) if falhas else "Tudo preenchido. Falta só o Flavio clicar em Enviar para revisão.")
 sys.exit(1 if falhas else 0)
