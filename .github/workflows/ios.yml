@@ -95,7 +95,9 @@ jobs:
           xcodebuild -project App.xcodeproj -scheme App -configuration Release \
             -destination 'generic/platform=iOS' -archivePath "$RUNNER_TEMP/App.xcarchive" \
             DEVELOPMENT_TEAM="$TEAM_ID" MARKETING_VERSION="$VERSAO" CURRENT_PROJECT_VERSION="${{ github.run_number }}" \
-            $AUTH archive
+            CODE_SIGNING_ALLOWED=NO archive
+          # O arquivo sai sem assinatura (assinar aqui exigiria um iPhone cadastrado na conta).
+          # Quem assina é a exportação: certificado de distribuição gerenciado pela Apple na nuvem.
           xcodebuild -exportArchive -archivePath "$RUNNER_TEMP/App.xcarchive" \
             -exportOptionsPlist "$RUNNER_TEMP/exportar.plist" -exportPath "$RUNNER_TEMP/saida" $AUTH
           rm -f "$CHAVE"
