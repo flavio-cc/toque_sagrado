@@ -1,0 +1,24 @@
+# Confere (só leitura) o que falta no App Store Connect antes de enviar para revisão. Não muda nada.
+name: Conferir App Store
+
+on:
+  push:
+    branches: ["claude/**"]
+    paths: ["app-store/conferir.py", ".github/workflows/app-store-conferir.yml"]
+  workflow_dispatch:
+
+jobs:
+  conferir:
+    runs-on: ubuntu-latest
+    env:
+      KEY_ID: ${{ secrets.APPSTORE_KEY_ID }}
+      ISSUER_ID: ${{ secrets.APPSTORE_ISSUER_ID }}
+      PRIVATE_KEY: ${{ secrets.APPSTORE_PRIVATE_KEY }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install "pyjwt[crypto]" requests
+      - name: Conferir pela API (só leitura)
+        run: python3 app-store/conferir.py
