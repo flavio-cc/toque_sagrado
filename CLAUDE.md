@@ -130,6 +130,9 @@ Cada carta em `window.VERSES`:
 - Anúncio premiado (`assistirAnuncio()` em `loja.js`): espera o `AdMob.initialize` (até 8 s), desiste se o vídeo não abrir
   em 25 s ou se vier `onRewardedVideoAdFailedToLoad`/`FailedToShow`, e então rejeita; o `app.js` tira o carregando e
   escreve "O vídeo não carregou" no botão (com o motivo, enquanto `anunciosDeTeste` for `true`).
+- Antes do anúncio, a tela `#aviso-video` (`avisoVideo()` em `app.js`) mostra o logo com anel girando e "Preparando o vídeo"
+  por 1,8 s e fica por baixo do vídeo; na volta vira "Bem-vindo de volta" e some sozinha. Pedido do Flavio, para não
+  parecer que o app fechou. Não dá para pôr borda no anúncio: é tela cheia do Google e o AdMob proíbe cobrir.
 - Princípios: o versículo nunca é pago; compartilhar é sempre grátis; anúncio só quando a pessoa escolhe assistir.
   Nos textos das lojas evite "raspadinha", "prêmio", "sorte" (soam como jogo de azar).
 - Narração de capítulos, temas visuais e widget estão planejados para depois.
