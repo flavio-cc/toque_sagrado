@@ -222,6 +222,25 @@ h1 { margin: 0; font: 700 20px var(--display); font-variant: small-caps; letter-
 .anuncio-simulado span { font: 700 40px var(--sans); color: #e7c56d; }
 .anuncio-simulado .link { color: #aaa; }
 
+/* aviso antes e depois do anúncio premiado: mostra que o app continua aberto */
+.aviso-video { z-index: 35; background: rgba(35, 28, 20, .92); transition: opacity .35s; }
+.aviso-video.saindo { opacity: 0; }
+.aviso-video .sobre-caixa { gap: 14px; max-width: 300px; }
+.aviso-logo { position: relative; width: 112px; height: 112px; display: flex; align-items: center; justify-content: center; }
+.aviso-logo img { width: 84px; height: 84px; border-radius: 18px; animation: respirar 2.4s ease-in-out infinite; }
+.aviso-anel { position: absolute; inset: 0; border-radius: 50%; border: 3px solid rgba(227, 195, 121, .22);
+  border-top-color: var(--ouro-claro); border-right-color: var(--ouro-claro); animation: girar 1.1s linear infinite; }
+.aviso-titulo { font: 600 22px var(--display) !important; color: var(--ouro-claro); }
+.aviso-video p { line-height: 1.45; }
+.aviso-pontos { display: flex; gap: 7px; }
+.aviso-pontos i { width: 7px; height: 7px; border-radius: 50%; background: var(--ouro-claro); opacity: .25; animation: piscar 1.2s infinite; }
+.aviso-pontos i:nth-child(2) { animation-delay: .2s; }
+.aviso-pontos i:nth-child(3) { animation-delay: .4s; }
+.aviso-video.voltou .aviso-anel, .aviso-video.voltou .aviso-pontos { display: none; }
+@keyframes respirar { 50% { transform: scale(1.06); } }
+@keyframes piscar { 40% { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .aviso-logo img, .aviso-pontos i { animation: none; } .aviso-anel { animation-duration: 3s; } }
+
 /* aviso enquanto a imagem de compartilhar é gerada */
 .preparando { z-index: 60; background: rgba(35, 28, 20, .55); }
 .girando { display: inline-block; width: 46px; height: 46px; border-radius: 50%;

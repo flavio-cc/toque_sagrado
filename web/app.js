@@ -500,19 +500,40 @@
     if (anunciosRestantes() <= 0) return atualizarExtra();
     // o anúncio só passa quando a pessoa escolhe, e a carta só vem se ela assistir até o fim
     $("btn-carta-extra").disabled = true;
-    // no app o anúncio leva uns segundos para carregar; no navegador a simulação já tem a própria tela
-    if (window.LOJA.nativo) carregando(true, 40000);
-    window.LOJA.assistirAnuncio().then(function (ganhou) {
-      carregando(false);
-      if (ganhou) { estado.dia.anuncios = (estado.dia.anuncios || 0) + 1; salvar(); abrirExtra(); }
-      atualizarExtra();
-    }, function (e) {
-      carregando(false); atualizarExtra();
-      // com os anúncios de teste, mostra o motivo para achar o problema
-      $("sub-extra").textContent = "O vídeo não carregou. Tente de novo em instantes." +
-        (window.LOJA.anunciosDeTeste && e && e.message ? " (" + e.message + ")" : "");
-    });
+    // antes do vídeo: aviso com animação, para não parecer que o app fechou (o anúncio é tela cheia do Google)
+    avisoVideo("antes");
+    setTimeout(function () {
+      window.LOJA.assistirAnuncio().then(function (ganhou) {
+        if (ganhou) { estado.dia.anuncios = (estado.dia.anuncios || 0) + 1; salvar(); abrirExtra(); }
+        atualizarExtra();
+        avisoVideo(ganhou ? "ganhou" : "saiu");
+      }, function (e) {
+        avisoVideo(false); atualizarExtra();
+        // com os anúncios de teste, mostra o motivo para achar o problema
+        $("sub-extra").textContent = "O vídeo não carregou. Tente de novo em instantes." +
+          (window.LOJA.anunciosDeTeste && e && e.message ? " (" + e.message + ")" : "");
+      });
+    }, 1800);
   };
+  // Tela que fica por baixo do anúncio: antes ("Preparando o vídeo" + animação) e na volta ("Bem-vindo de volta").
+  var esperaAviso = null;
+  function avisoVideo(fase) {
+    var d = $("aviso-video");
+    clearTimeout(esperaAviso);
+    d.classList.remove("saindo");
+    if (!fase) { d.hidden = true; return; }
+    d.hidden = false;
+    d.classList.toggle("voltou", fase !== "antes");
+    $("aviso-titulo").textContent = fase === "antes" ? "Preparando o vídeo" : "Bem-vindo de volta";
+    $("aviso-texto").textContent = fase === "antes" ? "Ele abre em tela cheia. Quando terminar, você volta aqui com sua carta extra."
+      : fase === "ganhou" ? "Sua carta extra está pronta para raspar." : "A carta extra vem quando o vídeo vai até o fim.";
+    // garantia: se o anúncio não responder, o aviso não fica preso; na volta, some sozinho
+    esperaAviso = setTimeout(function () {
+      d.classList.add("saindo");
+      esperaAviso = setTimeout(function () { d.hidden = true; d.classList.remove("saindo"); }, 350);
+    }, fase === "antes" ? 40000 : 1600);
+  }
+  $("aviso-video").onclick = function () { if (this.classList.contains("voltou")) avisoVideo(false); };
   $("link-premium").onclick = abrirPremium;
   $("btn-premium").onclick = abrirPremium;
   $("a-ouvir").onclick = ouvir;
