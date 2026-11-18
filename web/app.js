@@ -41,10 +41,37 @@
     return h >>> 0;
   }
   function popDe(v) { return (window.POP && window.POP[v.id]) || 1; }
-  // A carta do dia sai dos versículos mais lidos nos rankings públicos.
+  // Carta do dia: cada celular tem a sua. Sai de todas as cartas que a pessoa ainda não viu,
+  // sorteada pela data + um número do aparelho (guardado no estado), com mais peso para as
+  // mais lidas. A escolhida fica em estado.dia.carta, então não muda se fechar e abrir o app.
+  function idAparelho() {
+    if (estado.aparelho == null) { estado.aparelho = novaSemente(); salvar(); }
+    return estado.aparelho;
+  }
   function cartaDoDia() {
-    var populares = window.VERSES.filter(function (v) { return popDe(v) >= 2; });
-    return populares[hashTexto(hoje()) % populares.length];
+    var todos = window.VERSES;
+    var guardada = estado.dia.carta && todos.filter(function (v) { return v.id === estado.dia.carta; })[0];
+    if (guardada) return guardada;
+    var escolhida;
+    if (estado.dia.diaria) {
+      // quem já raspou hoje antes desta versão continua com a carta igual para todos
+      var populares = todos.filter(function (v) { return popDe(v) >= 2; });
+      escolhida = populares[hashTexto(hoje()) % populares.length];
+    } else {
+      var naoVistos = todos.filter(function (v) { return !estado.vistos[v.id] && !estado.colecao[v.id]; });
+      if (!naoVistos.length) naoVistos = todos.filter(function (v) { return !estado.colecao[v.id]; });
+      if (!naoVistos.length) naoVistos = todos.slice();
+      var pesos = naoVistos.map(function (v) { return 1 + 0.5 * (popDe(v) - 1); });
+      var total = pesos.reduce(function (a, b) { return a + b; }, 0);
+      var r = (hashTexto(hoje() + ":" + idAparelho()) / 4294967296) * total;
+      escolhida = naoVistos[naoVistos.length - 1];
+      for (var i = 0; i < naoVistos.length; i++) {
+        r -= pesos[i];
+        if (r < 0) { escolhida = naoVistos[i]; break; }
+      }
+    }
+    estado.dia.carta = escolhida.id; salvar();
+    return escolhida;
   }
   var LIVROS = { sl: "Salmos", pv: "Provérbios" };
   function nomeLivro(v) { return LIVROS[v.livro] || "Salmos"; }
