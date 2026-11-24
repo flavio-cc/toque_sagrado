@@ -115,7 +115,8 @@ def classificacao():
     print("     antes:", json.dumps(d["attributes"], ensure_ascii=False))
     sim = {"advertising"}  # o app mostra anúncio premiado
     booleanos = {"advertising", "ageAssurance", "gambling", "healthOrWellnessTopics", "lootBox", "messagingAndChat",
-                 "parentalControls", "unrestrictedWebAccess", "userGeneratedContent", "seventeenPlus"}
+                 "parentalControls", "unrestrictedWebAccess", "userGeneratedContent", "seventeenPlus",
+                 "datingAndRelationships", "sharedLocation"}
     pular = ("Override", "kidsAgeBand", "Url", "ageRating", "grac", "korea")
     atr = {}
     for k, v in d["attributes"].items():
