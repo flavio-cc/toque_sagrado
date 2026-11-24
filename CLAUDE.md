@@ -64,14 +64,16 @@ Cada carta em `window.VERSES`:
 
 ### Estado (localStorage)
 
-- Chave `salmos-v2` guarda `{colecao, notas, vistos, seq, dia: {data, diaria, extras, anuncios, semente}, humor}`.
+- Chave `salmos-v2` guarda `{colecao, notas, vistos, seq, aparelho, dia: {data, diaria, extras, anuncios, semente, carta}, humor}`.
 - Chave `toque-premium` guarda se a pessoa é Premium (cache; no app quem manda é o RevenueCat).
 - Sempre use `try/catch` em volta de localStorage (modo privado do Safari).
 - Mudar o formato do estado exige migração; não troque a chave sem motivo.
 
 ### Escolha do versículo
 
-- Carta do dia: sai das cartas com `POP >= 2`, escolhida pelo hash da data (igual para todo mundo no mesmo dia).
+- Carta do dia (desde a 1.0.47): **cada pessoa tem a sua**. Sai de todas as cartas ainda não vistas nem guardadas, pelo hash
+  da data + `estado.aparelho` (número aleatório do celular), com peso maior para `POP` alto. Fica em `estado.dia.carta`
+  e não muda no mesmo dia. Antes era igual para todos (só as `POP >= 2`, pelo hash da data); pedido do Flavio mudar.
 - Cartas extras: `escolherPersonalizada()` pondera os temas pelo humor escolhido nos chips e pelas notas
   aprendidas com o que a pessoa faz (`PESO`: ouvir 2, ler 3, compartilhar 3, favoritar 2, guardar 1, sair sem
   interagir -1), com 20% de exploração (`EXPLORACAO`) e evitando repetir as já vistas.
